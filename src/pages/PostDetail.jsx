@@ -7,12 +7,21 @@ import Breadcrumbs from "@/components/forum/Breadcrumbs";
 import ContactButtons from "@/components/forum/ContactButtons";
 import CommentSection from "@/components/forum/CommentSection";
 import PostCard from "@/components/forum/PostCard";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Eye, User } from "lucide-react";
+import { Calendar, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
+
+const TAG_COLORS = [
+  { bg: "#FEF3C7", text: "#92400E" },
+  { bg: "#DBEAFE", text: "#1E40AF" },
+  { bg: "#FCE7F3", text: "#9D174D" },
+  { bg: "#D1FAE5", text: "#065F46" },
+  { bg: "#EDE9FE", text: "#5B21B6" },
+  { bg: "#FEE2E2", text: "#991B1B" },
+  { bg: "#E0F2FE", text: "#075985" },
+];
 
 export default function PostDetail() {
   const { slug } = useParams();
@@ -41,7 +50,6 @@ export default function PostDetail() {
     enabled: !!post?.id,
   });
 
-  // Related posts
   const { data: relatedPosts = [] } = useQuery({
     queryKey: ["related", post?.category_id, post?.id],
     queryFn: async () => {
@@ -60,12 +68,13 @@ export default function PostDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen" style={{ backgroundColor: "#FAFAFA" }}>
         <Navbar categories={categories} tags={tags} memberCount={0} />
         <div className="max-w-3xl mx-auto px-4 py-8">
+          <Skeleton className="h-72 w-full rounded-xl mb-6" />
           <Skeleton className="h-8 w-3/4 mb-4" />
           <Skeleton className="h-4 w-1/3 mb-8" />
-          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-48 w-full" />
         </div>
       </div>
     );
@@ -73,23 +82,21 @@ export default function PostDetail() {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen" style={{ backgroundColor: "#FAFAFA" }}>
         <Navbar categories={categories} tags={tags} memberCount={0} />
         <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-          <p className="text-lg text-muted-foreground">帖子不存在</p>
-          <Link to="/" className="text-primary hover:underline mt-4 inline-block">
-            返回首页
-          </Link>
+          <p className="text-lg text-gray-400">帖子不存在</p>
+          <Link to="/" className="text-primary hover:underline mt-4 inline-block">返回首页</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={{ backgroundColor: "#FAFAFA" }}>
       <Navbar categories={categories} tags={tags} memberCount={0} />
 
-      <article className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-6">
         <Breadcrumbs
           items={[
             ...(category ? [{ label: category.name, href: `/?category=${category.id}` }] : []),
@@ -97,92 +104,110 @@ export default function PostDetail() {
           ]}
         />
 
-        {/* Header */}
-        <header className="mb-8">
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {category && (
-              <Badge
-                variant="secondary"
-                style={{
-                  borderColor: category.color + "40",
-                  backgroundColor: category.color + "10",
-                  color: category.color,
-                }}
-              >
-                {category.name}
-              </Badge>
-            )}
-            {postTags.map((tag) => (
-              <Badge key={tag.id} variant="outline" className="text-muted-foreground">
-                {tag.name}
-              </Badge>
-            ))}
-          </div>
+        <article className="bg-white rounded-2xl overflow-hidden shadow-sm border mb-4">
+          {/* Featured image — full width */}
+          {post.cover_image && (
+            <div className="w-full bg-gray-100">
+              <img
+                src={post.cover_image}
+                alt={post.title}
+                className="w-full object-cover max-h-[420px]"
+              />
+            </div>
+          )}
 
-          <h1 className="text-2xl sm:text-3xl font-bold leading-tight mb-4">{post.title}</h1>
+          <div className="px-5 sm:px-8 py-6">
+            {/* Category + tags */}
+            <div className="flex items-center gap-2 flex-wrap mb-3">
+              {category && (
+                <span
+                  className="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full"
+                  style={{
+                    backgroundColor: category.color + "18",
+                    color: category.color,
+                    border: `1px solid ${category.color}30`,
+                  }}
+                >
+                  {category.name}
+                </span>
+              )}
+              {postTags.map((tag, i) => {
+                const c = TAG_COLORS[i % TAG_COLORS.length];
+                return (
+                  <span
+                    key={tag.id}
+                    className="inline-block px-2.5 py-0.5 text-xs font-medium rounded-full"
+                    style={{ backgroundColor: c.bg, color: c.text }}
+                  >
+                    {tag.name}
+                  </span>
+                );
+              })}
+            </div>
 
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {post.author_name && (
-              <span className="flex items-center gap-1.5">
-                <User className="h-4 w-4" />
-                {post.author_name}
+            {/* Title */}
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#1a1a1a] leading-tight mb-4">
+              {post.title}
+            </h1>
+
+            {/* Author + meta row */}
+            <div className="flex items-center gap-3 mb-6">
+              {post.author_name && (
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                    <span className="text-sm font-semibold text-primary">
+                      {post.author_name[0]}
+                    </span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">{post.author_name}</span>
+                </div>
+              )}
+              {post.created_date && (
+                <span className="text-xs text-gray-400 flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  {format(new Date(post.created_date), "yyyy年MM月dd日", { locale: zhCN })}
+                </span>
+              )}
+              <span className="text-xs text-gray-400 flex items-center gap-1 ml-auto">
+                <Eye className="h-3.5 w-3.5" />
+                {post.view_count || 0} 阅读
               </span>
-            )}
-            {post.created_date && (
-              <span className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                {format(new Date(post.created_date), "yyyy年MM月dd日", { locale: zhCN })}
-              </span>
-            )}
-            <span className="flex items-center gap-1.5">
-              <Eye className="h-4 w-4" />
-              {post.view_count || 0} 阅读
-            </span>
+            </div>
+
+            {/* Rich text content */}
+            <div
+              className="prose-content text-[#333] leading-relaxed text-[15px] mb-8"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+
+            {/* Contact buttons — always shown at bottom */}
+            <div className="border-t pt-6">
+              <ContactButtons post={post} />
+            </div>
           </div>
-        </header>
-
-        {/* Cover image */}
-        {post.cover_image && (
-          <div className="rounded-xl overflow-hidden mb-8 bg-muted">
-            <img src={post.cover_image} alt={post.title} className="w-full object-cover max-h-96" />
-          </div>
-        )}
-
-        {/* Content */}
-        <div
-          className="prose-content text-foreground/90 leading-relaxed mb-10"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
-
-        {/* Contact */}
-        <div className="bg-muted/50 rounded-2xl p-6 mb-10">
-          <ContactButtons post={post} />
-        </div>
-
-        <Separator className="my-10" />
+        </article>
 
         {/* Comments */}
-        <CommentSection
-          postId={post.id}
-          comments={comments}
-          onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ["comments", post.id] })}
-        />
+        <div className="bg-white rounded-2xl border shadow-sm px-5 sm:px-8 py-6 mb-4">
+          <CommentSection
+            postId={post.id}
+            comments={comments}
+            onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ["comments", post.id] })}
+          />
+        </div>
 
-        {/* Related */}
+        {/* Related posts */}
         {relatedPosts.length > 0 && (
-          <>
-            <Separator className="my-10" />
-            <div>
-              <h3 className="text-lg font-semibold mb-4">相关帖子</h3>
-              <div className="space-y-2">
-                {relatedPosts.map((rp) => (
-                  <PostCard key={rp.id} post={rp} categories={categories} tags={tags} />
-                ))}
-              </div>
+          <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b">
+              <h3 className="font-semibold text-gray-800">相关帖子</h3>
             </div>
-          </>
+            {relatedPosts.map((rp) => (
+              <PostCard key={rp.id} post={rp} categories={categories} tags={tags} />
+            ))}
+          </div>
         )}
-      </article>
+      </div>
     </div>
   );
 }

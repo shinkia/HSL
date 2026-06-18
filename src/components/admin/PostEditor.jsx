@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import SeoPanel from "./SeoPanel";
 import ReactQuill from "react-quill";
-import { Save, ArrowLeft, Eye } from "lucide-react";
+import { Save, ArrowLeft, Upload, ImageIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 const emptyPost = {
@@ -30,9 +30,11 @@ export default function PostEditor() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const isEditing = !!id;
+  const quillRef = useRef(null);
 
   const [form, setForm] = useState(emptyPost);
   const [saving, setSaving] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -58,19 +60,55 @@ export default function PostEditor() {
 
   const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
-  const generateSlug = (title) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\u4e00-\u9fff]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      || `post-${Date.now()}`;
-  };
+  const generateSlug = (title) =>
+    title.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g, "-").replace(/^-+|-+$/g, "") ||
+    `post-${Date.now()}`;
 
   const handleTitleChange = (value) => {
     update("title", value);
-    if (!isEditing || !form.slug) {
-      update("slug", generateSlug(value));
-    }
+    if (!isEditing || !form.slug) update("slug", generateSlug(value));
+  };
+
+  // Inline image upload handler for Quill
+  const imageHandler = () => {
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "image/*");
+    input.click();
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const quill = quillRef.current?.getEditor();
+      if (quill) {
+        const range = quill.getSelection(true);
+        quill.insertEmbed(range.index, "image", file_url);
+        quill.setSelection(range.index + 1);
+      }
+    };
+  };
+
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ header: [1, 2, 3, false] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["blockquote", "code-block"],
+        ["link", "image"],
+        ["clean"],
+      ],
+      handlers: { image: imageHandler },
+    },
+  }), []);
+
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setCoverUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    update("cover_image", file_url);
+    setCoverUploading(false);
   };
 
   const handleSave = async () => {
@@ -81,7 +119,6 @@ export default function PostEditor() {
     setSaving(true);
     const data = { ...form };
     if (!data.slug) data.slug = generateSlug(data.title);
-
     if (isEditing) {
       await base44.entities.Post.update(id, data);
     } else {
@@ -95,11 +132,7 @@ export default function PostEditor() {
 
   const toggleTag = (tagId) => {
     const current = form.tags || [];
-    if (current.includes(tagId)) {
-      update("tags", current.filter((t) => t !== tagId));
-    } else {
-      update("tags", [...current, tagId]);
-    }
+    update("tags", current.includes(tagId) ? current.filter((t) => t !== tagId) : [...current, tagId]);
   };
 
   return (
@@ -113,9 +146,7 @@ export default function PostEditor() {
         </div>
         <div className="flex items-center gap-2">
           <Select value={form.status} onValueChange={(v) => update("status", v)}>
-            <SelectTrigger className="w-28">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="draft">草稿</SelectItem>
               <SelectItem value="published">发布</SelectItem>
@@ -134,40 +165,27 @@ export default function PostEditor() {
         <div className="lg:col-span-2 space-y-5">
           <div>
             <Label className="text-xs mb-1.5 block">标题</Label>
-            <Input
-              value={form.title}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              placeholder="帖子标题"
-              className="text-lg font-medium"
-            />
+            <Input value={form.title} onChange={(e) => handleTitleChange(e.target.value)} placeholder="帖子标题" className="text-lg font-medium" />
           </div>
 
           <div>
-            <Label className="text-xs mb-1.5 block">Slug</Label>
-            <Input
-              value={form.slug}
-              onChange={(e) => update("slug", e.target.value)}
-              placeholder="url-friendly-slug"
-            />
+            <Label className="text-xs mb-1.5 block">URL Slug</Label>
+            <Input value={form.slug} onChange={(e) => update("slug", e.target.value)} placeholder="url-friendly-slug" />
           </div>
 
           <div>
             <Label className="text-xs mb-1.5 block">摘要</Label>
-            <Textarea
-              value={form.excerpt || ""}
-              onChange={(e) => update("excerpt", e.target.value)}
-              placeholder="帖子简短描述"
-              rows={2}
-              className="resize-none"
-            />
+            <Textarea value={form.excerpt || ""} onChange={(e) => update("excerpt", e.target.value)} placeholder="帖子简短描述" rows={2} className="resize-none" />
           </div>
 
           <div>
-            <Label className="text-xs mb-1.5 block">内容</Label>
+            <Label className="text-xs mb-1.5 block">内容 <span className="text-muted-foreground font-normal">（支持插入图片）</span></Label>
             <ReactQuill
+              ref={quillRef}
               value={form.content || ""}
               onChange={(v) => update("content", v)}
               theme="snow"
+              modules={modules}
             />
           </div>
 
@@ -201,7 +219,7 @@ export default function PostEditor() {
           <SeoPanel data={form} onChange={setForm} />
         </div>
 
-        {/* Sidebar */}
+        {/* Right sidebar */}
         <div className="space-y-5">
           <div className="border rounded-xl p-5 space-y-3">
             <h3 className="font-semibold text-sm">分类</h3>
@@ -211,7 +229,7 @@ export default function PostEditor() {
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                      <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: cat.color }} />
                       {cat.name}
                     </span>
                   </SelectItem>
@@ -239,12 +257,24 @@ export default function PostEditor() {
             </div>
           </div>
 
+          {/* Cover image with file upload */}
           <div className="border rounded-xl p-5 space-y-3">
             <h3 className="font-semibold text-sm">封面图片</h3>
+            <Button variant="outline" size="sm" className="w-full gap-2 relative" disabled={coverUploading}>
+              <ImageIcon className="h-4 w-4" />
+              {coverUploading ? "上传中..." : "从设备上传"}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleCoverUpload}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+            </Button>
+            <div className="text-xs text-muted-foreground text-center">— 或粘贴图片链接 —</div>
             <Input
               value={form.cover_image || ""}
               onChange={(e) => update("cover_image", e.target.value)}
-              placeholder="图片 URL"
+              placeholder="https://..."
             />
             {form.cover_image && (
               <img src={form.cover_image} alt="" className="rounded-lg w-full h-32 object-cover bg-muted" />
