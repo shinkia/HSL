@@ -1,0 +1,38 @@
+{
+  "name": "Comment",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string",
+      "description": "ID of the post"
+    },
+    "content": {
+      "type": "string",
+      "description": "Comment text"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_email": {
+      "type": "string"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "Parent comment ID for replies"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "pending",
+        "spam"
+      ],
+      "default": "approved"
+    }
+  },
+  "required": [
+    "post_id",
+    "content",
+    "author_name"
+  ]
+}

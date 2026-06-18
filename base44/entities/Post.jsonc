@@ -1,0 +1,137 @@
+{
+  "name": "Post",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Post title"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly slug"
+    },
+    "content": {
+      "type": "string",
+      "description": "Rich text content (HTML)"
+    },
+    "excerpt": {
+      "type": "string",
+      "description": "Short excerpt for listing"
+    },
+    "category_id": {
+      "type": "string",
+      "description": "Category ID"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of tag IDs"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "cover_image": {
+      "type": "string",
+      "description": "Cover image URL"
+    },
+    "view_count": {
+      "type": "number",
+      "default": 0
+    },
+    "reply_count": {
+      "type": "number",
+      "default": 0
+    },
+    "contact_whatsapp": {
+      "type": "string",
+      "description": "WhatsApp number"
+    },
+    "contact_phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "contact_telegram": {
+      "type": "string",
+      "description": "Telegram handle"
+    },
+    "contact_link": {
+      "type": "string",
+      "description": "Custom contact link"
+    },
+    "contact_link_label": {
+      "type": "string",
+      "description": "Label for custom link"
+    },
+    "seo_title": {
+      "type": "string",
+      "description": "SEO title (max 60 chars)"
+    },
+    "meta_description": {
+      "type": "string",
+      "description": "Meta description (max 160 chars)"
+    },
+    "focus_keyword": {
+      "type": "string"
+    },
+    "og_image": {
+      "type": "string"
+    },
+    "og_title": {
+      "type": "string"
+    },
+    "og_description": {
+      "type": "string"
+    },
+    "twitter_title": {
+      "type": "string"
+    },
+    "twitter_description": {
+      "type": "string"
+    },
+    "twitter_image": {
+      "type": "string"
+    },
+    "canonical_url": {
+      "type": "string"
+    },
+    "noindex": {
+      "type": "boolean",
+      "default": false
+    },
+    "nofollow": {
+      "type": "boolean",
+      "default": false
+    },
+    "schema_type": {
+      "type": "string",
+      "enum": [
+        "Article",
+        "BlogPosting",
+        "WebPage"
+      ],
+      "default": "Article"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "is_pinned": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "slug",
+    "content",
+    "category_id",
+    "status"
+  ]
+}

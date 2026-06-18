@@ -1,0 +1,27 @@
+{
+  "name": "MediaItem",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "image",
+        "video",
+        "document"
+      ]
+    },
+    "size": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "name",
+    "url"
+  ]
+}

@@ -6,43 +6,58 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
-// Add page imports here
+
+import Home from '@/pages/Home';
+import PostDetail from '@/pages/PostDetail';
+import AdminLayout from '@/components/admin/AdminLayout';
+import AdminDashboard from '@/pages/admin/AdminDashboard';
+import PostsList from '@/pages/admin/PostsList';
+import PostEditor from '@/components/admin/PostEditor';
+import CategoriesManager from '@/pages/admin/CategoriesManager';
+import TagsManager from '@/pages/admin/TagsManager';
+import MediaLibrary from '@/pages/admin/MediaLibrary';
+import UsersManager from '@/pages/admin/UsersManager';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  // Handle authentication errors
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
   }
 
-  // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route path="/" element={<Home />} />
+      <Route path="/posts/:slug" element={<PostDetail />} />
+      <Route element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/posts" element={<PostsList />} />
+        <Route path="/admin/posts/new" element={<PostEditor />} />
+        <Route path="/admin/posts/:id" element={<PostEditor />} />
+        <Route path="/admin/categories" element={<CategoriesManager />} />
+        <Route path="/admin/tags" element={<TagsManager />} />
+        <Route path="/admin/media" element={<MediaLibrary />} />
+        <Route path="/admin/users" element={<UsersManager />} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
