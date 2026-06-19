@@ -111,7 +111,7 @@ export default function PostDetail() {
               <img
                 src={post.cover_image}
                 alt={post.title}
-                className="w-full object-cover max-h-[420px]"
+                className="w-full h-auto"
               />
             </div>
           )}
@@ -182,13 +182,13 @@ export default function PostDetail() {
 
             {/* Post images (ordered) */}
             {(post.images || []).length > 0 && (
-              <div className="space-y-3 mb-8">
+              <div className="space-y-4 mb-8">
                 {post.images.map((url, i) => (
                   <img
                     key={i}
                     src={url}
                     alt=""
-                    className="w-full rounded-xl bg-gray-100 object-cover"
+                    className="w-full h-auto rounded-xl bg-gray-100"
                   />
                 ))}
               </div>
