@@ -9,12 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import SeoPanel from "./SeoPanel";
+import PostImagesUploader from "./PostImagesUploader";
 import ReactQuill from "react-quill";
 import { Save, ArrowLeft, Upload, ImageIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 const emptyPost = {
-  title: "", slug: "", content: "", excerpt: "", category_id: "", tags: [],
+  title: "", slug: "", content: "", excerpt: "", category_id: "", tags: [], images: [],
   status: "draft", cover_image: "", author_name: "", is_pinned: false,
   contact_whatsapp: "", contact_phone: "", contact_telegram: "",
   contact_link: "", contact_link_label: "",
@@ -188,6 +189,9 @@ export default function PostEditor() {
               modules={modules}
             />
           </div>
+
+          {/* Multi-image uploader (drag to reorder) */}
+          <PostImagesUploader images={form.images || []} onChange={(imgs) => update("images", imgs)} />
 
           {/* Contact section */}
           <div className="border rounded-xl p-5 space-y-3">

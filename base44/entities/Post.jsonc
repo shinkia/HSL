@@ -29,6 +29,13 @@
       },
       "description": "Array of tag IDs"
     },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ordered array of image URLs in the post body"
+    },
     "status": {
       "type": "string",
       "enum": [

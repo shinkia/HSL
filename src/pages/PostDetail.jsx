@@ -176,9 +176,23 @@ export default function PostDetail() {
 
             {/* Rich text content */}
             <div
-              className="prose-content text-[#333] leading-relaxed text-[15px] mb-8"
+              className="prose-content text-[#333] leading-relaxed text-[15px] mb-6"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
+
+            {/* Post images (ordered) */}
+            {(post.images || []).length > 0 && (
+              <div className="space-y-3 mb-8">
+                {post.images.map((url, i) => (
+                  <img
+                    key={i}
+                    src={url}
+                    alt=""
+                    className="w-full rounded-xl bg-gray-100 object-cover"
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Contact buttons — always shown at bottom */}
             <div className="border-t pt-6">
