@@ -180,20 +180,6 @@ export default function PostDetail() {
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
 
-            {/* Post images (ordered) */}
-            {(post.images || []).length > 0 && (
-              <div className="space-y-4 mb-8">
-                {post.images.map((url, i) => (
-                  <img
-                    key={i}
-                    src={url}
-                    alt=""
-                    className="w-full h-auto rounded-xl bg-gray-100"
-                  />
-                ))}
-              </div>
-            )}
-
             {/* Contact buttons — always shown at bottom */}
             <div className="border-t pt-6">
               <ContactButtons post={post} />
