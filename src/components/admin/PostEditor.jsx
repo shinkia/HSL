@@ -69,14 +69,18 @@ export default function PostEditor() {
     if (!isEditing || !form.slug) update("slug", generateSlug(value));
   };
 
-  // Inline image upload handler for Quill
-  const imageHandler = () => {
+  // Use a ref so the stable useMemo modules object always calls the latest handler
+  const imageHandlerRef = useRef(null);
+  imageHandlerRef.current = () => {
     const input = document.createElement("input");
     input.setAttribute("type", "file");
     input.setAttribute("accept", "image/*");
+    input.style.display = "none";
+    document.body.appendChild(input);
     input.click();
     input.onchange = async () => {
       const file = input.files[0];
+      document.body.removeChild(input);
       if (!file) return;
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       const quill = quillRef.current?.getEditor();
@@ -98,7 +102,7 @@ export default function PostEditor() {
         ["link", "image"],
         ["clean"],
       ],
-      handlers: { image: imageHandler },
+      handlers: { image: () => imageHandlerRef.current() },
     },
   }), []);
 
