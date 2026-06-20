@@ -6,6 +6,8 @@
       "type": "string",
       "enum": [
         "admin",
+        "moderator",
+        "author",
         "user"
       ],
       "default": "user"
@@ -16,7 +18,7 @@
     },
     "avatar": {
       "type": "string",
-      "description": "Avatar image URL"
+      "description": "Avatar image URL (auto-generated if not set)"
     },
     "bio": {
       "type": "string",
@@ -38,5 +40,8 @@
       "type": "string",
       "format": "date-time"
     }
-  }
+  },
+  "required": [
+    "username"
+  ]
 }

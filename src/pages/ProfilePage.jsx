@@ -36,7 +36,7 @@ export default function ProfilePage() {
   const user = users.find((u) => u.username === username);
   const userPosts = user ? allPosts.filter((p) => p.user_id === user.id) : [];
 
-  const avatarUrl = user?.avatar || (username ? `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(username)}` : "");
+  const avatarUrl = user?.avatar || (username ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username)}` : "");
 
   return (
     <div className="flex-1 overflow-x-hidden">

@@ -47,7 +47,7 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
   const avatarUrl =
     user?.avatar ||
     (user?.username
-      ? `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(user.username)}`
+      ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.username)}`
       : null);
   const profilePath = user?.username ? `/user/${user.username}` : "/";
 

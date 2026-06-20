@@ -33,7 +33,7 @@ export default function VerifyPending() {
           username: username || undefined,
           email_verified: true,
           avatar: username
-            ? `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(username)}`
+            ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username)}`
             : undefined,
         });
       } catch (e) {

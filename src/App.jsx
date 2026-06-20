@@ -18,6 +18,10 @@ import StaticPage from '@/pages/StaticPage';
 import SearchPage from '@/pages/SearchPage';
 import VerifyPending from '@/pages/VerifyPending';
 import ProfilePage from '@/pages/ProfilePage';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import PostsList from '@/pages/admin/PostsList';
@@ -49,6 +53,13 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
+      {/* Standalone auth routes */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/verify-pending" element={<VerifyPending />} />
+
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/posts/:slug" element={<PostDetail />} />
@@ -57,7 +68,6 @@ const AuthenticatedApp = () => {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/tags" element={<TagsPage />} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/verify-pending" element={<VerifyPending />} />
         <Route path="/user/:username" element={<ProfilePage />} />
         <Route path="/about" element={<StaticPage />} />
         <Route path="/contact" element={<StaticPage />} />
