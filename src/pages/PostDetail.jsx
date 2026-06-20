@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Navbar from "@/components/forum/Navbar";
@@ -10,13 +10,19 @@ import PostCard from "@/components/forum/PostCard";
 import PostDetailSkeleton from "@/components/common/PostDetailSkeleton";
 import ErrorState from "@/components/common/ErrorState";
 import EmptyState from "@/components/common/EmptyState";
-import { Calendar, Eye, FileX } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Eye, FileX, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
+import { useAuth } from "@/lib/AuthContext";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "@/components/ui/use-toast";
 
 export default function PostDetail() {
   const { slug } = useParams();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -61,6 +67,14 @@ export default function PostDetail() {
   });
   const author = authorUsers[0];
   const category = categories.find((c) => c.id === post?.category_id);
+
+  const handleDelete = async () => {
+    if (!post) return;
+    await base44.entities.Post.delete(post.id);
+    queryClient.invalidateQueries({ queryKey: ["posts"] });
+    toast({ title: "帖子已删除" });
+    navigate("/");
+  };
   const postTags = (post?.tags || []).map((tid) => tags.find((t) => t.id === tid)).filter(Boolean);
 
   if (isLoading) {
@@ -156,6 +170,12 @@ export default function PostDetail() {
             </div>
 
             {/* Title */}
+            {post.post_type === "fr" && (
+              <span className="inline-block mb-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">心得</span>
+            )}
+            {post.post_type === "qna" && (
+              <span className="inline-block mb-2 px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">问答</span>
+            )}
             <h1 className="text-[22px] md:text-[28px] font-bold text-[#1a1a1a] leading-tight mb-4">
               {post.title}
             </h1>
@@ -198,16 +218,44 @@ export default function PostDetail() {
               </span>
             </div>
 
+            {/* Author actions */}
+            {post.user_id === user?.id && (post.post_type === "fr" || post.post_type === "qna") && (
+              <div className="flex gap-2 mb-4">
+                <Button variant="outline" size="sm" onClick={() => navigate(`/write?type=${post.post_type}&id=${post.id}`)}>
+                  <Pencil className="h-4 w-4 mr-1" /> 编辑
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                      <Trash2 className="h-4 w-4 mr-1" /> 删除
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>确认删除？</AlertDialogTitle>
+                      <AlertDialogDescription>此操作不可撤销，帖子将被永久删除。</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>取消</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete}>删除</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
+
             {/* Rich text content */}
             <div
               className="prose-content text-[#333] leading-relaxed text-[15px] mb-6"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
 
-            {/* Contact buttons — always shown at bottom */}
-            <div className="border-t pt-6">
-              <ContactButtons post={post} />
-            </div>
+            {/* Contact buttons — only for classified posts */}
+            {post.post_type !== "fr" && post.post_type !== "qna" && (
+              <div className="border-t pt-6">
+                <ContactButtons post={post} />
+              </div>
+            )}
           </div>
         </article>
 

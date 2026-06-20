@@ -22,6 +22,7 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
+import WritePost from '@/pages/WritePost';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import PostsList from '@/pages/admin/PostsList';
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-pending" element={<VerifyPending />} />
+      <Route path="/write" element={<WritePost />} />
 
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />

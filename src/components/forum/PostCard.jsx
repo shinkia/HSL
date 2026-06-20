@@ -47,6 +47,12 @@ export default function PostCard({ post, categories = [], tags = [] }) {
 
         {/* Badges row */}
         <div className="flex items-center gap-1.5 flex-wrap">
+          {post.post_type === "fr" && (
+            <span className="inline-block px-1.5 py-0.5 text-[10px] font-medium bg-green-100 text-green-700 rounded">心得</span>
+          )}
+          {post.post_type === "qna" && (
+            <span className="inline-block px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded">问答</span>
+          )}
           {category && (
             <Link
               to={`/category/${category.slug}`}

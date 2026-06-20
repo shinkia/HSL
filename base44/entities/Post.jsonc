@@ -41,6 +41,16 @@
       "type": "string",
       "description": "ID of the User who created this post"
     },
+    "post_type": {
+      "type": "string",
+      "enum": [
+        "classified",
+        "fr",
+        "qna"
+      ],
+      "default": "classified",
+      "description": "Type of post: classified (admin), fr (\u5fc3\u5f97), qna (\u95ee\u7b54)"
+    },
     "tags": {
       "type": "array",
       "items": {

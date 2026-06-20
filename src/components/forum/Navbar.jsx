@@ -11,7 +11,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Search, Menu, X, User as UserIcon, FileText, LogOut } from "lucide-react";
+import { Search, Menu, X, User as UserIcon, FileText, LogOut, PenSquare } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Sidebar from "./Sidebar";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -19,6 +25,7 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
   const [searchValue, setSearchValue] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [writeModalOpen, setWriteModalOpen] = useState(false);
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
 
@@ -72,7 +79,12 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
           {/* Auth - desktop */}
           <div className="hidden md:flex items-center gap-2 shrink-0">
             {isAuthenticated && user ? (
-              <DropdownMenu>
+              <>
+                <Button onClick={() => setWriteModalOpen(true)} size="sm" className="gap-2 bg-primary hover:bg-primary/90">
+                  <PenSquare className="h-4 w-4" />
+                  发帖
+                </Button>
+                <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                     {avatarUrl ? (
@@ -109,6 +121,7 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </>
             ) : (
               <>
                 <Link to="/login">
@@ -143,6 +156,13 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
                   <div className="mt-6 pt-6 border-t space-y-2">
                     {isAuthenticated && user ? (
                       <>
+                        <Button
+                          className="w-full h-11 gap-2 bg-primary hover:bg-primary/90"
+                          onClick={() => { setMobileOpen(false); setWriteModalOpen(true); }}
+                        >
+                          <PenSquare className="h-4 w-4" />
+                          发帖
+                        </Button>
                         <Link to={profilePath} onClick={() => setMobileOpen(false)}>
                           <Button variant="outline" className="w-full h-11 gap-2">
                             <UserIcon className="h-4 w-4" />
@@ -196,6 +216,37 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
           </div>
         </div>
       )}
+
+      {/* Write post modal */}
+      <Dialog open={writeModalOpen} onOpenChange={setWriteModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>您想发布什么？</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-2">
+            <button
+              onClick={() => { setWriteModalOpen(false); navigate("/write?type=fr"); }}
+              className="w-full flex items-center gap-3 p-4 rounded-xl border hover:bg-muted transition-colors text-left"
+            >
+              <span className="text-2xl">📝</span>
+              <div>
+                <div className="font-medium">写心得 (FR)</div>
+                <div className="text-sm text-muted-foreground">分享您的体验</div>
+              </div>
+            </button>
+            <button
+              onClick={() => { setWriteModalOpen(false); navigate("/write?type=qna"); }}
+              className="w-full flex items-center gap-3 p-4 rounded-xl border hover:bg-muted transition-colors text-left"
+            >
+              <span className="text-2xl">❓</span>
+              <div>
+                <div className="font-medium">提问 (Q&A)</div>
+                <div className="text-sm text-muted-foreground">提出您的问题</div>
+              </div>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
