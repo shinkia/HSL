@@ -1,16 +1,27 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Search, Menu, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Search, Menu, X, User as UserIcon, FileText, LogOut, MailWarning } from "lucide-react";
 import Sidebar from "./Sidebar";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function Navbar({ categories, tags, memberCount, onSearch }) {
   const [searchValue, setSearchValue] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -19,11 +30,48 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
     setSearchOpen(false);
   };
 
+  const handleLogout = () => {
+    logout();
+  };
+
+  const handleResendVerify = async () => {
+    if (user?.email) {
+      try {
+        await base44.auth.resendOtp(user.email);
+      } catch (e) {
+        // ignore
+      }
+    }
+  };
+
+  const avatarUrl =
+    user?.avatar ||
+    (user?.username
+      ? `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(user.username)}`
+      : null);
+  const profilePath = user?.username ? `/user/${user.username}` : "/";
+
   return (
     <>
+      {/* Email verification banner */}
+      {isAuthenticated && user && !user.email_verified && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm text-amber-800 flex items-center justify-center gap-3 flex-wrap">
+          <span className="flex items-center gap-1.5">
+            <MailWarning className="h-4 w-4 shrink-0" />
+            请验证您的邮箱才能发帖和评论
+          </span>
+          <button
+            onClick={handleResendVerify}
+            className="text-primary font-medium hover:underline shrink-0"
+          >
+            重新发送验证邮件
+          </button>
+        </div>
+      )}
+
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
-          {/* Logo - always visible, left side */}
+          {/* Logo */}
           <Link to="/" className="shrink-0 flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">论</span>
@@ -31,7 +79,7 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
             <span className="font-heading font-semibold text-lg hidden sm:block">社区论坛</span>
           </Link>
 
-          {/* Search - desktop (md and up) */}
+          {/* Search - desktop */}
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-auto">
             <div className="relative w-full">
               <button type="submit" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -46,28 +94,61 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
             </div>
           </form>
 
-          {/* Auth buttons - desktop only */}
+          {/* Auth - desktop */}
           <div className="hidden md:flex items-center gap-2 shrink-0">
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="text-sm">
-                登录
-              </Button>
-            </Link>
-            <Link to="/register">
-              <Button size="sm" className="text-sm bg-primary hover:bg-primary/90">
-                注册
-              </Button>
-            </Link>
+            {isAuthenticated && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full bg-muted" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center">
+                        <span className="text-sm font-semibold text-primary">
+                          {(user.username || user.email || "?")[0].toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    <span className="text-sm font-medium max-w-[100px] truncate">
+                      {user.username || user.email}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel className="font-normal text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate(profilePath)}>
+                    <UserIcon className="h-4 w-4 mr-2" />
+                    个人中心
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(profilePath)}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    我的帖子
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    退出登录
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm" className="text-sm">登录</Button>
+                </Link>
+                <Link to="/register">
+                  <Button size="sm" className="text-sm bg-primary hover:bg-primary/90">注册</Button>
+                </Link>
+              </>
+            )}
           </div>
 
-          {/* Mobile right side: search icon + hamburger */}
+          {/* Mobile right side */}
           <div className="md:hidden flex items-center gap-1 ml-auto">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-11 w-11"
-              onClick={() => setSearchOpen(true)}
-            >
+            <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => setSearchOpen(true)}>
               <Search className="h-5 w-5" />
             </Button>
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -85,12 +166,29 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
                     onNavigate={() => setMobileOpen(false)}
                   />
                   <div className="mt-6 pt-6 border-t space-y-2">
-                    <Link to="/login" onClick={() => setMobileOpen(false)}>
-                      <Button variant="outline" className="w-full h-11">登录</Button>
-                    </Link>
-                    <Link to="/register" onClick={() => setMobileOpen(false)}>
-                      <Button className="w-full h-11 bg-primary hover:bg-primary/90">注册</Button>
-                    </Link>
+                    {isAuthenticated && user ? (
+                      <>
+                        <Link to={profilePath} onClick={() => setMobileOpen(false)}>
+                          <Button variant="outline" className="w-full h-11 gap-2">
+                            <UserIcon className="h-4 w-4" />
+                            {user.username || "个人中心"}
+                          </Button>
+                        </Link>
+                        <Button variant="outline" className="w-full h-11 gap-2" onClick={handleLogout}>
+                          <LogOut className="h-4 w-4" />
+                          退出登录
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Link to="/login" onClick={() => setMobileOpen(false)}>
+                          <Button variant="outline" className="w-full h-11">登录</Button>
+                        </Link>
+                        <Link to="/register" onClick={() => setMobileOpen(false)}>
+                          <Button className="w-full h-11 bg-primary hover:bg-primary/90">注册</Button>
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
               </SheetContent>
@@ -117,12 +215,7 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
                 />
               </div>
             </form>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-11 w-11 shrink-0"
-              onClick={() => setSearchOpen(false)}
-            >
+            <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" onClick={() => setSearchOpen(false)}>
               <X className="h-5 w-5" />
             </Button>
           </div>

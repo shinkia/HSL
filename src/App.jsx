@@ -16,6 +16,8 @@ import CategoriesPage from '@/pages/CategoriesPage';
 import TagsPage from '@/pages/TagsPage';
 import StaticPage from '@/pages/StaticPage';
 import SearchPage from '@/pages/SearchPage';
+import VerifyPending from '@/pages/VerifyPending';
+import ProfilePage from '@/pages/ProfilePage';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import PostsList from '@/pages/admin/PostsList';
@@ -55,6 +57,8 @@ const AuthenticatedApp = () => {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/tags" element={<TagsPage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/verify-pending" element={<VerifyPending />} />
+        <Route path="/user/:username" element={<ProfilePage />} />
         <Route path="/about" element={<StaticPage />} />
         <Route path="/contact" element={<StaticPage />} />
         <Route path="/terms" element={<StaticPage />} />

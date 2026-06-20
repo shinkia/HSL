@@ -98,6 +98,8 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       setAuthChecked(true);
+      // Update last_seen (fire-and-forget)
+      base44.auth.updateMe({ last_seen: new Date().toISOString() }).catch(() => {});
     } catch (error) {
       console.error('User auth check failed:', error);
       setIsLoadingAuth(false);

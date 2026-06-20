@@ -10,11 +10,17 @@
       "type": "string",
       "description": "Comment text"
     },
+    "user_id": {
+      "type": "string",
+      "description": "ID of the User who wrote this comment"
+    },
     "author_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Denormalized author username"
     },
     "author_email": {
-      "type": "string"
+      "type": "string",
+      "description": "Denormalized author email"
     },
     "parent_id": {
       "type": "string",
@@ -33,6 +39,7 @@
   "required": [
     "post_id",
     "content",
+    "user_id",
     "author_name"
   ]
 }

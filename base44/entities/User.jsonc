@@ -6,12 +6,37 @@
       "type": "string",
       "enum": [
         "admin",
-        "moderator",
-        "author",
         "user"
       ],
-      "default": "user",
-      "description": "User role in the forum"
+      "default": "user"
+    },
+    "username": {
+      "type": "string",
+      "description": "Display name, 3-20 chars, alphanumeric + underscore"
+    },
+    "avatar": {
+      "type": "string",
+      "description": "Avatar image URL"
+    },
+    "bio": {
+      "type": "string",
+      "description": "User bio, max 200 chars"
+    },
+    "email_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "post_count": {
+      "type": "number",
+      "default": 0
+    },
+    "comment_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_seen": {
+      "type": "string",
+      "format": "date-time"
     }
   }
 }

@@ -37,6 +37,10 @@
       ],
       "description": "City/region for the post"
     },
+    "user_id": {
+      "type": "string",
+      "description": "ID of the User who created this post"
+    },
     "tags": {
       "type": "array",
       "items": {

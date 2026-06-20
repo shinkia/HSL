@@ -12,6 +12,7 @@ import SeoPanel from "./SeoPanel";
 import TiptapEditor from "./TiptapEditor";
 import { Save, ArrowLeft, Upload, ImageIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/lib/AuthContext";
 
 const emptyPost = {
   title: "", slug: "", content: "", excerpt: "", category_id: "", city: "", tags: [], images: [],
@@ -29,6 +30,7 @@ export default function PostEditor() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
   const isEditing = !!id;
 
   const [form, setForm] = useState(emptyPost);
@@ -91,6 +93,10 @@ export default function PostEditor() {
     setSaving(true);
     const data = { ...form };
     if (!data.slug) data.slug = generateSlug(data.title);
+    if (!isEditing && user) {
+      data.user_id = user.id;
+      data.author_name = user.username || user.full_name || user.email;
+    }
     if (isEditing) {
       await base44.entities.Post.update(id, data);
     } else {

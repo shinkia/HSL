@@ -54,6 +54,12 @@ export default function PostDetail() {
     enabled: !!post?.category_id,
   });
 
+  const { data: authorUsers = [] } = useQuery({
+    queryKey: ["post-author", post?.user_id],
+    queryFn: () => base44.entities.User.filter({ id: post.user_id }),
+    enabled: !!post?.user_id,
+  });
+  const author = authorUsers[0];
   const category = categories.find((c) => c.id === post?.category_id);
   const postTags = (post?.tags || []).map((tid) => tags.find((t) => t.id === tid)).filter(Boolean);
 
@@ -156,7 +162,21 @@ export default function PostDetail() {
 
             {/* Author + meta row */}
             <div className="flex items-center gap-3 mb-6">
-              {post.author_name && (
+              {author && (
+                <Link to={`/user/${author.username}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  {author.avatar ? (
+                    <img src={author.avatar} alt="" className="w-8 h-8 rounded-full shrink-0 bg-muted" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                      <span className="text-sm font-semibold text-primary">
+                        {(author.username || "?")[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <span className="text-sm font-medium text-gray-700 hover:text-primary">{author.username}</span>
+                </Link>
+              )}
+              {!author && post.author_name && (
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
                     <span className="text-sm font-semibold text-primary">
