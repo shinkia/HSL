@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import SeoPanel from "./SeoPanel";
-import ReactQuill from "react-quill";
+import TiptapEditor from "./TiptapEditor";
 import { Save, ArrowLeft, Upload, ImageIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -30,7 +30,6 @@ export default function PostEditor() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const isEditing = !!id;
-  const quillRef = useRef(null);
 
   const [form, setForm] = useState(emptyPost);
   const [saving, setSaving] = useState(false);
@@ -68,43 +67,6 @@ export default function PostEditor() {
     update("title", value);
     if (!isEditing || !form.slug) update("slug", generateSlug(value));
   };
-
-  // Use a ref so the stable useMemo modules object always calls the latest handler
-  const imageHandlerRef = useRef(null);
-  imageHandlerRef.current = () => {
-    const input = document.createElement("input");
-    input.setAttribute("type", "file");
-    input.setAttribute("accept", "image/*");
-    input.style.display = "none";
-    document.body.appendChild(input);
-    input.click();
-    input.onchange = async () => {
-      const file = input.files[0];
-      document.body.removeChild(input);
-      if (!file) return;
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const quill = quillRef.current?.getEditor();
-      if (quill) {
-        const range = quill.getSelection(true);
-        quill.insertEmbed(range.index, "image", file_url);
-        quill.setSelection(range.index + 1);
-      }
-    };
-  };
-
-  const modules = useMemo(() => ({
-    toolbar: {
-      container: [
-        [{ header: [1, 2, 3, false] }],
-        ["bold", "italic", "underline", "strike"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["blockquote", "code-block"],
-        ["link", "image"],
-        ["clean"],
-      ],
-      handlers: { image: () => imageHandlerRef.current() },
-    },
-  }), []);
 
   const handleCoverUpload = async (e) => {
     const file = e.target.files[0];
@@ -184,12 +146,9 @@ export default function PostEditor() {
 
           <div>
             <Label className="text-xs mb-1.5 block">内容 <span className="text-muted-foreground font-normal">（支持插入图片）</span></Label>
-            <ReactQuill
-              ref={quillRef}
+            <TiptapEditor
               value={form.content || ""}
               onChange={(v) => update("content", v)}
-              theme="snow"
-              modules={modules}
             />
           </div>
 
