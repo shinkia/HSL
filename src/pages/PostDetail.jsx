@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { getLocationBySlug, getLocationByName, getPostUrl, resolveLocationSlug } from "@/lib/locations";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Navbar from "@/components/forum/Navbar";
@@ -19,7 +20,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from "@/components/ui/use-toast";
 
 export default function PostDetail() {
-  const { slug } = useParams();
+  const { locationSlug, postSlug } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -35,11 +36,20 @@ export default function PostDetail() {
   });
 
   const { data: posts = [], isLoading, isError, refetch } = useQuery({
-    queryKey: ["post", slug],
-    queryFn: () => base44.entities.Post.filter({ slug, status: "published" }),
+    queryKey: ["post", postSlug],
+    queryFn: () => base44.entities.Post.filter({ slug: postSlug, status: "published" }),
   });
 
   const post = posts[0];
+  const postLocation = post ? getLocationByName(post.location) : null;
+  const urlLocation = getLocationBySlug(resolveLocationSlug(locationSlug));
+
+  // Redirect if the URL location doesn't match the post's actual location
+  useEffect(() => {
+    if (post && postLocation && urlLocation && postLocation.slug !== urlLocation.slug) {
+      navigate(getPostUrl(post), { replace: true });
+    }
+  }, [post, postLocation, urlLocation, navigate]);
 
   const { data: comments = [] } = useQuery({
     queryKey: ["comments", post?.id],
@@ -128,7 +138,7 @@ export default function PostDetail() {
         <div className="px-4 mb-4">
           <Breadcrumbs
             items={[
-              ...(category ? [{ label: category.name, href: `/category/${category.slug}` }] : []),
+              ...(postLocation ? [{ label: postLocation.displayName, href: `/${postLocation.slug}` }] : []),
               { label: post.title },
             ]}
           />

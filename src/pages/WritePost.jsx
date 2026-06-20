@@ -11,8 +11,7 @@ import Navbar from "@/components/forum/Navbar";
 import { Save, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/AuthContext";
-
-const CITIES = ["新山", "常规", "吉隆坡", "新加坡", "槟城", "马六甲", "东马", "森美兰", "云顶"];
+import { LOCATIONS } from "@/lib/locations";
 
 export default function WritePost() {
   const [searchParams] = useSearchParams();
@@ -26,7 +25,7 @@ export default function WritePost() {
   const isEditing = !!editId;
 
   const [title, setTitle] = useState("");
-  const [city, setCity] = useState("");
+  const [location, setLocation] = useState("");
   const [content, setContent] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -58,7 +57,7 @@ export default function WritePost() {
         return;
       }
       setTitle(post.title || "");
-      setCity(post.city || "");
+      setLocation(post.location || "");
       setContent(post.content || "");
       setSelectedTags(post.tags || []);
     }
@@ -69,8 +68,8 @@ export default function WritePost() {
     `post-${Date.now()}`;
 
   const handleSubmit = async () => {
-    if (!title.trim() || !city || !content.trim()) {
-      toast({ title: "请填写标题、城市和内容", variant: "destructive" });
+    if (!title.trim() || !location || !content.trim()) {
+      toast({ title: "请填写标题、地区和内容", variant: "destructive" });
       return;
     }
     if (!category) {
@@ -84,7 +83,7 @@ export default function WritePost() {
         slug: isEditing && existingPosts[0]?.slug ? existingPosts[0].slug : generateSlug(title.trim()),
         content,
         category_id: category.id,
-        city,
+        location,
         tags: selectedTags,
         post_type: type,
         status: "published",
@@ -153,12 +152,12 @@ export default function WritePost() {
           </div>
 
           <div>
-            <Label className="text-xs mb-1.5 block">城市 <span className="text-destructive">*</span></Label>
-            <Select value={city} onValueChange={setCity}>
-              <SelectTrigger><SelectValue placeholder="选择城市" /></SelectTrigger>
+            <Label className="text-xs mb-1.5 block">地区 <span className="text-destructive">*</span></Label>
+            <Select value={location} onValueChange={setLocation}>
+              <SelectTrigger><SelectValue placeholder="选择地区" /></SelectTrigger>
               <SelectContent>
-                {CITIES.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                {LOCATIONS.map((l) => (
+                  <SelectItem key={l.name} value={l.name}>{l.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import Sidebar from "./Sidebar";
+import LocationTabs from "./LocationTabs";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function Navbar({ categories, tags, memberCount, onSearch }) {
@@ -188,6 +189,12 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
                 </div>
               </SheetContent>
             </Sheet>
+          </div>
+        </div>
+        {/* Location tabs */}
+        <div className="border-t">
+          <div className="max-w-7xl mx-auto">
+            <LocationTabs />
           </div>
         </div>
       </header>

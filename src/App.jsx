@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -23,6 +23,8 @@ import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import WritePost from '@/pages/WritePost';
+import LocationPage from '@/pages/LocationPage';
+import OldPostRedirect from '@/components/OldPostRedirect';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import PostsList from '@/pages/admin/PostsList';
@@ -64,7 +66,11 @@ const AuthenticatedApp = () => {
 
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/posts/:slug" element={<PostDetail />} />
+        {/* Redirects for old URLs */}
+        <Route path="/posts/:slug" element={<OldPostRedirect />} />
+        <Route path="/post/:slug" element={<OldPostRedirect />} />
+        <Route path="/ns" element={<Navigate to="/negeri-sembilan" replace />} />
+        {/* Category and tag routes */}
         <Route path="/category/:slug" element={<CategoryPage />} />
         <Route path="/tag/:slug" element={<TagPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
@@ -75,6 +81,9 @@ const AuthenticatedApp = () => {
         <Route path="/contact" element={<StaticPage />} />
         <Route path="/terms" element={<StaticPage />} />
         <Route path="/privacy" element={<StaticPage />} />
+        {/* Location listing and post detail */}
+        <Route path="/:locationSlug" element={<LocationPage />} />
+        <Route path="/:locationSlug/:postSlug" element={<PostDetail />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
       <Route element={<AdminLayout />}>

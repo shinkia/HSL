@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
+import { getPostUrl } from "@/lib/locations";
 
 const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='%23f3f4f6'%3E%3Crect width='80' height='80'/%3E%3C/svg%3E";
 
@@ -23,7 +24,7 @@ export default function PostCard({ post, categories = [], tags = [] }) {
       }`}
     >
       {/* Thumbnail */}
-      <Link to={`/posts/${post.slug}`} className="shrink-0">
+      <Link to={getPostUrl(post)} className="shrink-0">
         <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-gray-100">
           <img
             src={post.cover_image || PLACEHOLDER_IMG}
@@ -36,7 +37,7 @@ export default function PostCard({ post, categories = [], tags = [] }) {
 
       {/* Main content */}
       <div className="flex-1 min-w-0 py-0.5">
-        <Link to={`/posts/${post.slug}`} className="block">
+        <Link to={getPostUrl(post)} className="block">
           <h3 className="text-[15px] font-semibold text-[#1a1a1a] hover:text-primary transition-colors line-clamp-2 leading-snug mb-1.5">
             {isPinned && (
               <span className="inline-block mr-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-green-500 text-white rounded align-middle">置顶</span>
@@ -75,7 +76,7 @@ export default function PostCard({ post, categories = [], tags = [] }) {
       </div>
 
       {/* Right: replies + time */}
-      <Link to={`/posts/${post.slug}`} className="shrink-0 flex flex-col items-end gap-1 text-right ml-1.5 md:ml-2">
+      <Link to={getPostUrl(post)} className="shrink-0 flex flex-col items-end gap-1 text-right ml-1.5 md:ml-2">
         <div className="flex items-center gap-1 text-gray-400">
           <MessageCircle className="h-3.5 w-3.5" />
           <span className="text-xs md:text-sm font-medium text-gray-600">{post.reply_count || 0}</span>
