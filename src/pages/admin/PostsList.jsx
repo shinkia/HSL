@@ -9,6 +9,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Plus, Search, Pencil, Trash2, Eye, FileText } from "lucide-react";
+import { getPostUrl } from "@/lib/locations";
 import EmptyState from "@/components/common/EmptyState";
 import ErrorState from "@/components/common/ErrorState";
 import TableSkeleton from "@/components/common/TableSkeleton";
@@ -106,7 +107,7 @@ export default function PostsList() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       {post.status === "published" && (
-                        <Link to={`/posts/${post.slug}`}>
+                        <Link to={getPostUrl(post)}>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
                             <Eye className="h-4 w-4" />
                           </Button>
