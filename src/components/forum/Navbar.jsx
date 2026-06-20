@@ -14,8 +14,8 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (onSearch) onSearch(searchValue);
-    navigate(`/?search=${encodeURIComponent(searchValue)}`);
+    if (!searchValue.trim()) return;
+    navigate(`/search?q=${encodeURIComponent(searchValue.trim())}`);
     setSearchOpen(false);
   };
 
@@ -34,7 +34,9 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
           {/* Search - desktop (md and up) */}
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-auto">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <button type="submit" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                <Search className="h-4 w-4" />
+              </button>
               <Input
                 placeholder="搜索帖子..."
                 value={searchValue}
@@ -103,7 +105,9 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
           <div className="flex items-center gap-2 h-16 px-4 border-b">
             <form onSubmit={handleSearch} className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <button type="submit" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  <Search className="h-4 w-4" />
+                </button>
                 <Input
                   autoFocus
                   placeholder="搜索帖子..."

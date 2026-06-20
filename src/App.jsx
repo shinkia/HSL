@@ -15,6 +15,7 @@ import TagPage from '@/pages/TagPage';
 import CategoriesPage from '@/pages/CategoriesPage';
 import TagsPage from '@/pages/TagsPage';
 import StaticPage from '@/pages/StaticPage';
+import SearchPage from '@/pages/SearchPage';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import PostsList from '@/pages/admin/PostsList';
@@ -53,6 +54,7 @@ const AuthenticatedApp = () => {
         <Route path="/tag/:slug" element={<TagPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/tags" element={<TagsPage />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="/about" element={<StaticPage />} />
         <Route path="/contact" element={<StaticPage />} />
         <Route path="/terms" element={<StaticPage />} />

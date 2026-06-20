@@ -14,7 +14,7 @@ import { Save, ArrowLeft, Upload, ImageIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 const emptyPost = {
-  title: "", slug: "", content: "", excerpt: "", category_id: "", tags: [], images: [],
+  title: "", slug: "", content: "", excerpt: "", category_id: "", city: "", tags: [], images: [],
   status: "draft", cover_image: "", author_name: "", is_pinned: false,
   contact_whatsapp: "", contact_phone: "", contact_telegram: "",
   contact_link: "", contact_link_label: "",
@@ -84,8 +84,8 @@ export default function PostEditor() {
   };
 
   const handleSave = async () => {
-    if (!form.title || !form.category_id) {
-      toast({ title: "请填写标题和分类", variant: "destructive" });
+    if (!form.title || !form.category_id || !form.city) {
+      toast({ title: "请填写标题、分类和城市", variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -203,6 +203,24 @@ export default function PostEditor() {
                     </span>
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="border rounded-xl p-5 space-y-3">
+            <h3 className="font-semibold text-sm">城市 <span className="text-destructive">*</span></h3>
+            <Select value={form.city || ""} onValueChange={(v) => update("city", v)}>
+              <SelectTrigger><SelectValue placeholder="选择城市" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="新山">新山</SelectItem>
+                <SelectItem value="常规">常规</SelectItem>
+                <SelectItem value="吉隆坡">吉隆坡</SelectItem>
+                <SelectItem value="新加坡">新加坡</SelectItem>
+                <SelectItem value="槟城">槟城</SelectItem>
+                <SelectItem value="马六甲">马六甲</SelectItem>
+                <SelectItem value="东马">东马</SelectItem>
+                <SelectItem value="森美兰">森美兰</SelectItem>
+                <SelectItem value="云顶">云顶</SelectItem>
               </SelectContent>
             </Select>
           </div>

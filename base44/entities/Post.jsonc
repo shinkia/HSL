@@ -22,6 +22,21 @@
       "type": "string",
       "description": "Category ID"
     },
+    "city": {
+      "type": "string",
+      "enum": [
+        "\u65b0\u5c71",
+        "\u5e38\u89c4",
+        "\u5409\u9686\u5761",
+        "\u65b0\u52a0\u5761",
+        "\u69df\u57ce",
+        "\u9a6c\u516d\u7532",
+        "\u4e1c\u9a6c",
+        "\u68ee\u7f8e\u5170",
+        "\u4e91\u9876"
+      ],
+      "description": "City/region for the post"
+    },
     "tags": {
       "type": "array",
       "items": {
@@ -139,6 +154,7 @@
     "slug",
     "content",
     "category_id",
+    "city",
     "status"
   ]
 }

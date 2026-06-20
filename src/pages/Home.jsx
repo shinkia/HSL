@@ -56,12 +56,7 @@ export default function Home() {
   }
 
   if (cityFilter) {
-    filteredPosts = filteredPosts.filter((p) =>
-      p.title?.includes(cityFilter) || p.excerpt?.includes(cityFilter) || (p.tags || []).some((tid) => {
-        const tag = tags.find((t) => t.id === tid);
-        return tag?.name === cityFilter;
-      })
-    );
+    filteredPosts = filteredPosts.filter((p) => p.city === cityFilter);
   }
 
   if (searchQuery) {
