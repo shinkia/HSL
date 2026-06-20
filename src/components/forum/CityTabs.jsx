@@ -29,12 +29,12 @@ export default function CityTabs() {
   };
 
   return (
-    <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none">
+    <div className="flex items-center gap-1 overflow-x-auto pb-0.5 no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
       {CITIES.map((city) => (
         <button
           key={city.value}
           onClick={() => handleCity(city.value)}
-          className={`shrink-0 px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
+          className={`shrink-0 px-3 md:px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
             activeCity === city.value
               ? "bg-primary text-white"
               : "text-gray-600 hover:bg-gray-100"

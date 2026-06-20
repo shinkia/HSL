@@ -34,12 +34,12 @@ export default function PostCard({ post, categories = [], tags = [] }) {
   return (
     <Link to={`/posts/${post.slug}`} className="block group">
       <article
-        className={`flex items-center gap-3 px-4 py-3 border-b last:border-b-0 transition-colors hover:bg-gray-50 ${
+        className={`flex items-center gap-3 px-3 md:px-4 py-3 border-b last:border-b-0 transition-colors hover:bg-gray-50 ${
           isPinned ? "bg-green-50 hover:bg-green-100/70" : "bg-white"
         }`}
       >
         {/* Thumbnail */}
-        <div className="shrink-0 w-[72px] h-[72px] rounded-lg overflow-hidden bg-gray-100">
+        <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-gray-100">
           <img
             src={post.cover_image || PLACEHOLDER_IMG}
             alt=""
@@ -87,12 +87,12 @@ export default function PostCard({ post, categories = [], tags = [] }) {
         </div>
 
         {/* Right: replies + time */}
-        <div className="shrink-0 flex flex-col items-end gap-1 text-right ml-2">
+        <div className="shrink-0 flex flex-col items-end gap-1 text-right ml-1.5 md:ml-2">
           <div className="flex items-center gap-1 text-gray-400">
             <MessageCircle className="h-3.5 w-3.5" />
-            <span className="text-sm font-medium text-gray-600">{post.reply_count || 0}</span>
+            <span className="text-xs md:text-sm font-medium text-gray-600">{post.reply_count || 0}</span>
           </div>
-          <span className="text-xs text-gray-400 whitespace-nowrap">{timeAgo}</span>
+          <span className="text-[11px] md:text-xs text-gray-400 whitespace-nowrap">{timeAgo}</span>
         </div>
       </article>
     </Link>

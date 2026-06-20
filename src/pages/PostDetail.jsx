@@ -69,7 +69,7 @@ export default function PostDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: "#FAFAFA" }}>
+      <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAFA" }}>
         <Navbar categories={categories} tags={tags} memberCount={0} />
         <div className="max-w-3xl mx-auto px-4 py-6">
           <PostDetailSkeleton />
@@ -80,7 +80,7 @@ export default function PostDetail() {
 
   if (isError) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: "#FAFAFA" }}>
+      <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAFA" }}>
         <Navbar categories={categories} tags={tags} memberCount={0} />
         <div className="max-w-3xl mx-auto px-4 py-6">
           <div className="bg-white rounded-2xl border shadow-sm">
@@ -93,7 +93,7 @@ export default function PostDetail() {
 
   if (!post) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: "#FAFAFA" }}>
+      <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAFA" }}>
         <Navbar categories={categories} tags={tags} memberCount={0} />
         <div className="max-w-3xl mx-auto px-4 py-6">
           <div className="bg-white rounded-2xl border shadow-sm">
@@ -111,30 +111,32 @@ export default function PostDetail() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#FAFAFA" }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAFA" }}>
       <Navbar categories={categories} tags={tags} memberCount={0} />
 
-      <div className="max-w-3xl mx-auto px-4 py-6">
-        <Breadcrumbs
-          items={[
-            ...(category ? [{ label: category.name, href: `/?category=${category.id}` }] : []),
-            { label: post.title },
-          ]}
-        />
+      <div className="max-w-3xl mx-auto py-4 sm:py-6">
+        <div className="px-4 mb-4">
+          <Breadcrumbs
+            items={[
+              ...(category ? [{ label: category.name, href: `/?category=${category.id}` }] : []),
+              { label: post.title },
+            ]}
+          />
+        </div>
+
+        {/* Featured image — full width edge to edge */}
+        {post.cover_image && (
+          <div className="w-full bg-gray-100 mb-4">
+            <img
+              src={post.cover_image}
+              alt={post.title}
+              className="w-full h-auto"
+            />
+          </div>
+        )}
 
         <article className="bg-white rounded-2xl overflow-hidden shadow-sm border mb-4">
-          {/* Featured image — full width */}
-          {post.cover_image && (
-            <div className="w-full bg-gray-100">
-              <img
-                src={post.cover_image}
-                alt={post.title}
-                className="w-full h-auto"
-              />
-            </div>
-          )}
-
-          <div className="px-5 sm:px-8 py-6">
+          <div className="px-4 md:px-6 py-6">
             {/* Category + tags */}
             <div className="flex items-center gap-2 flex-wrap mb-3">
               {category && (
@@ -164,7 +166,7 @@ export default function PostDetail() {
             </div>
 
             {/* Title */}
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#1a1a1a] leading-tight mb-4">
+            <h1 className="text-[22px] md:text-[28px] font-bold text-[#1a1a1a] leading-tight mb-4">
               {post.title}
             </h1>
 
@@ -206,7 +208,7 @@ export default function PostDetail() {
         </article>
 
         {/* Comments */}
-        <div className="bg-white rounded-2xl border shadow-sm px-5 sm:px-8 py-6 mb-4">
+        <div className="bg-white rounded-2xl border shadow-sm px-4 md:px-6 py-6 mb-4">
           <CommentSection
             postId={post.id}
             comments={comments}
@@ -217,7 +219,7 @@ export default function PostDetail() {
         {/* Related posts */}
         {relatedPosts.length > 0 && (
           <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b">
+            <div className="px-4 md:px-6 py-4 border-b">
               <h3 className="font-semibold text-gray-800">相关帖子</h3>
             </div>
             {relatedPosts.map((rp) => (

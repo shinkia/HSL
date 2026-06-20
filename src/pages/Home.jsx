@@ -89,7 +89,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#FAFAFA" }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAFA" }}>
       <Navbar
         categories={categories}
         tags={tags}
@@ -100,7 +100,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <div className="flex gap-6">
           {/* Left sidebar - desktop only */}
-          <div className="hidden lg:block w-52 shrink-0">
+          <div className="hidden md:block w-52 shrink-0">
             <div className="sticky top-20">
               <Sidebar categories={categories} tags={tags} memberCount={users.length} />
             </div>

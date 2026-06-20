@@ -24,42 +24,48 @@ export default function SeoPanel({ data, onChange }) {
       </div>
 
       {/* Basic SEO */}
-      <div className="space-y-3">
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <Label className="text-xs">SEO 标题</Label>
-            <CharCounter value={data.seo_title} max={60} />
+      <Collapsible defaultOpen>
+        <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium">
+          基础 SEO
+          <ChevronDown className="h-4 w-4" />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-3 pt-2">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <Label className="text-xs">SEO 标题</Label>
+              <CharCounter value={data.seo_title} max={60} />
+            </div>
+            <Input
+              value={data.seo_title || ""}
+              onChange={(e) => update("seo_title", e.target.value)}
+              placeholder="搜索引擎显示的标题"
+            />
           </div>
-          <Input
-            value={data.seo_title || ""}
-            onChange={(e) => update("seo_title", e.target.value)}
-            placeholder="搜索引擎显示的标题"
-          />
-        </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <Label className="text-xs">Meta 描述</Label>
-            <CharCounter value={data.meta_description} max={160} />
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <Label className="text-xs">Meta 描述</Label>
+              <CharCounter value={data.meta_description} max={160} />
+            </div>
+            <Textarea
+              value={data.meta_description || ""}
+              onChange={(e) => update("meta_description", e.target.value)}
+              placeholder="搜索结果中显示的描述"
+              rows={2}
+              className="resize-none"
+            />
           </div>
-          <Textarea
-            value={data.meta_description || ""}
-            onChange={(e) => update("meta_description", e.target.value)}
-            placeholder="搜索结果中显示的描述"
-            rows={2}
-            className="resize-none"
-          />
-        </div>
 
-        <div>
-          <Label className="text-xs mb-1.5 block">焦点关键词</Label>
-          <Input
-            value={data.focus_keyword || ""}
-            onChange={(e) => update("focus_keyword", e.target.value)}
-            placeholder="主要目标关键词"
-          />
-        </div>
-      </div>
+          <div>
+            <Label className="text-xs mb-1.5 block">焦点关键词</Label>
+            <Input
+              value={data.focus_keyword || ""}
+              onChange={(e) => update("focus_keyword", e.target.value)}
+              placeholder="主要目标关键词"
+            />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Open Graph */}
       <Collapsible>

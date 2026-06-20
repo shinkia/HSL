@@ -10,7 +10,7 @@ export default function ContactButtons({ post }) {
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">联系方式</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
         {post.contact_whatsapp && (
           <a
             href={`https://wa.me/${post.contact_whatsapp.replace(/[^0-9]/g, "")}`}

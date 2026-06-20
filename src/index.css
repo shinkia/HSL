@@ -104,6 +104,10 @@
 .prose-content pre { @apply bg-muted rounded-lg p-4 my-4 overflow-x-auto; }
 .prose-content code { @apply bg-muted px-1.5 py-0.5 rounded text-sm; }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* Tiptap editor styles */
 .tiptap-content .tiptap {
   min-height: 300px;

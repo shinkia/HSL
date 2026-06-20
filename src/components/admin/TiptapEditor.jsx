@@ -92,7 +92,7 @@ export default function TiptapEditor({ value, onChange }) {
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`p-2 rounded transition-colors ${
+      className={`p-2.5 rounded transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center ${
         isActive ? "bg-primary/15 text-primary" : "text-gray-600 hover:bg-muted"
       } disabled:opacity-40 disabled:cursor-not-allowed`}
     >
