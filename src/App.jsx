@@ -33,6 +33,7 @@ import CategoriesManager from '@/pages/admin/CategoriesManager';
 import TagsManager from '@/pages/admin/TagsManager';
 import MediaLibrary from '@/pages/admin/MediaLibrary';
 import UsersManager from '@/pages/admin/UsersManager';
+import ReportsManager from '@/pages/admin/ReportsManager';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -95,6 +96,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/tags" element={<TagsManager />} />
         <Route path="/admin/media" element={<MediaLibrary />} />
         <Route path="/admin/users" element={<UsersManager />} />
+        <Route path="/admin/reports" element={<ReportsManager />} />
       </Route>
     </Routes>
   );

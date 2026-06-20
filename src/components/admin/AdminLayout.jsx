@@ -1,6 +1,8 @@
 import React from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { FileText, FolderOpen, Tag, Image, Users, LayoutDashboard, ArrowLeft } from "lucide-react";
+import { FileText, FolderOpen, Tag, Image, Users, LayoutDashboard, ArrowLeft, Flag } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 const navItems = [
   { path: "/admin", icon: LayoutDashboard, label: "仪表盘" },
@@ -9,10 +11,19 @@ const navItems = [
   { path: "/admin/tags", icon: Tag, label: "标签管理" },
   { path: "/admin/media", icon: Image, label: "媒体库" },
   { path: "/admin/users", icon: Users, label: "用户管理" },
+  { path: "/admin/reports", icon: Flag, label: "举报管理", badge: true },
 ];
 
 export default function AdminLayout() {
   const { pathname } = useLocation();
+
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ["pending-report-count"],
+    queryFn: async () => {
+      const res = await base44.functions.invoke("getPendingReportCount");
+      return res.data.count || 0;
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -40,6 +51,11 @@ export default function AdminLayout() {
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
+                {item.badge && pendingCount > 0 && (
+                  <span className="ml-auto bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                    {pendingCount}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -62,6 +78,11 @@ export default function AdminLayout() {
                 >
                   <item.icon className="h-3.5 w-3.5" />
                   {item.label}
+                  {item.badge && pendingCount > 0 && (
+                    <span className="bg-red-500 text-white text-[10px] px-1 rounded-full">
+                      {pendingCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}

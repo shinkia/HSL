@@ -20,6 +20,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from "@/components/ui/use-toast";
 import LikeButton from "@/components/forum/LikeButton";
 import { useLikes } from "@/hooks/useLikes";
+import ReportButton from "@/components/forum/ReportButton";
 
 export default function PostDetail() {
   const { locationSlug, postSlug } = useParams();
@@ -273,6 +274,11 @@ export default function PostDetail() {
                 <ContactButtons post={post} />
               </div>
             )}
+
+            {/* Report button */}
+            <div className="border-t pt-4 mt-6 flex justify-end">
+              <ReportButton targetType="post" targetId={post.id} />
+            </div>
           </div>
         </article>
 
