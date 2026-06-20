@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageCircle, Send, Lock } from "lucide-react";
 import EmptyState from "@/components/common/EmptyState";
+import LikeButton from "@/components/forum/LikeButton";
 import { useAuth } from "@/lib/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
-export default function CommentSection({ postId, comments = [], onCommentAdded }) {
+export default function CommentSection({ postId, comments = [], onCommentAdded, likedCommentIds }) {
   const { user, isAuthenticated } = useAuth();
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -67,6 +68,9 @@ export default function CommentSection({ postId, comments = [], onCommentAdded }
                   </span>
                 </div>
                 <p className="text-sm text-foreground/80 leading-relaxed">{comment.content}</p>
+                <div className="flex items-center gap-3 mt-1.5">
+                  <LikeButton targetType="comment" targetId={comment.id} count={comment.like_count || 0} liked={likedCommentIds?.has(comment.id) || false} />
+                </div>
               </div>
             </div>
           );

@@ -11,6 +11,7 @@ import ErrorState from "@/components/common/ErrorState";
 import Breadcrumbs from "@/components/forum/Breadcrumbs";
 import { FileText } from "lucide-react";
 import { getLocationBySlug, resolveLocationSlug } from "@/lib/locations";
+import { useLikes } from "@/hooks/useLikes";
 
 const SORT_OPTIONS = [
   { label: "最新", value: "latest" },
@@ -51,6 +52,8 @@ export default function LocationPage() {
     enabled: !!location,
   });
 
+  const likedPostIds = useLikes("post", posts.map((p) => p.id));
+
   if (!location) {
     return (
       <div className="flex-1 overflow-x-hidden">
@@ -72,9 +75,11 @@ export default function LocationPage() {
 
   let filteredPosts = posts;
   if (sortTab === "hot") {
-    filteredPosts = [...filteredPosts].sort(
-      (a, b) => (b.view_count || 0) - (a.view_count || 0)
-    );
+    filteredPosts = [...filteredPosts].sort((a, b) => {
+      const likeDiff = (b.like_count || 0) - (a.like_count || 0);
+      if (likeDiff !== 0) return likeDiff;
+      return new Date(b.created_date) - new Date(a.created_date);
+    });
   }
   filteredPosts = [
     ...filteredPosts.filter((p) => p.is_pinned),
@@ -121,7 +126,7 @@ export default function LocationPage() {
               {!isLoading &&
                 !isError &&
                 filteredPosts.map((post) => (
-                  <PostCard key={post.id} post={post} categories={categories} tags={tags} />
+                  <PostCard key={post.id} post={post} categories={categories} tags={tags} likedPostIds={likedPostIds} />
                 ))}
             </div>
           </main>

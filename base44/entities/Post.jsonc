@@ -81,6 +81,11 @@
       "type": "number",
       "default": 0
     },
+    "like_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Denormalized like count"
+    },
     "contact_whatsapp": {
       "type": "string",
       "description": "WhatsApp number"

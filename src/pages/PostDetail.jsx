@@ -18,6 +18,8 @@ import { zhCN } from "date-fns/locale";
 import { useAuth } from "@/lib/AuthContext";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
+import LikeButton from "@/components/forum/LikeButton";
+import { useLikes } from "@/hooks/useLikes";
 
 export default function PostDetail() {
   const { locationSlug, postSlug } = useParams();
@@ -56,6 +58,10 @@ export default function PostDetail() {
     queryFn: () => base44.entities.Comment.filter({ post_id: post.id, status: "approved" }, "created_date"),
     enabled: !!post?.id,
   });
+
+  const postLikedIds = useLikes("post", post ? [post.id] : []);
+  const postLiked = postLikedIds.has(post?.id);
+  const likedCommentIds = useLikes("comment", comments.map((c) => c.id));
 
   const { data: relatedPosts = [] } = useQuery({
     queryKey: ["related", post?.category_id, post?.id],
@@ -226,6 +232,7 @@ export default function PostDetail() {
                 <Eye className="h-3.5 w-3.5" />
                 {post.view_count || 0} 阅读
               </span>
+              <LikeButton targetType="post" targetId={post.id} count={post.like_count || 0} liked={postLiked} />
             </div>
 
             {/* Author actions */}
@@ -274,6 +281,7 @@ export default function PostDetail() {
           <CommentSection
             postId={post.id}
             comments={comments}
+            likedCommentIds={likedCommentIds}
             onCommentAdded={() => queryClient.invalidateQueries({ queryKey: ["comments", post.id] })}
           />
         </div>

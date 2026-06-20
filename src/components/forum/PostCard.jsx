@@ -4,10 +4,11 @@ import { MessageCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { getPostUrl } from "@/lib/locations";
+import LikeButton from "@/components/forum/LikeButton";
 
 const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='%23f3f4f6'%3E%3Crect width='80' height='80'/%3E%3C/svg%3E";
 
-export default function PostCard({ post, categories = [], tags = [] }) {
+export default function PostCard({ post, categories = [], tags = [], likedPostIds }) {
   const category = categories.find((c) => c.id === post.category_id);
   const postTags = (post.tags || []).map((tid) => tags.find((t) => t.id === tid)).filter(Boolean);
 
@@ -75,14 +76,19 @@ export default function PostCard({ post, categories = [], tags = [] }) {
         </div>
       </div>
 
-      {/* Right: replies + time */}
-      <Link to={getPostUrl(post)} className="shrink-0 flex flex-col items-end gap-1 text-right ml-1.5 md:ml-2">
-        <div className="flex items-center gap-1 text-gray-400">
-          <MessageCircle className="h-3.5 w-3.5" />
-          <span className="text-xs md:text-sm font-medium text-gray-600">{post.reply_count || 0}</span>
+      {/* Right: likes + replies + time */}
+      <div className="shrink-0 flex flex-col items-end gap-1 ml-1.5 md:ml-2">
+        <div className="flex items-center gap-3">
+          <LikeButton targetType="post" targetId={post.id} count={post.like_count || 0} liked={likedPostIds?.has(post.id) || false} />
+          <Link to={getPostUrl(post)} className="flex items-center gap-1 text-gray-400">
+            <MessageCircle className="h-3.5 w-3.5" />
+            <span className="text-xs md:text-sm font-medium text-gray-600">{post.reply_count || 0}</span>
+          </Link>
         </div>
-        <span className="text-[11px] md:text-xs text-gray-400 whitespace-nowrap">{timeAgo}</span>
-      </Link>
+        <Link to={getPostUrl(post)}>
+          <span className="text-[11px] md:text-xs text-gray-400 whitespace-nowrap">{timeAgo}</span>
+        </Link>
+      </div>
     </article>
   );
 }

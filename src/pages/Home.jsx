@@ -9,6 +9,7 @@ import PostListSkeleton from "@/components/common/PostListSkeleton";
 import EmptyState from "@/components/common/EmptyState";
 import ErrorState from "@/components/common/ErrorState";
 import { FileText, Search, FolderOpen, Tag } from "lucide-react";
+import { useLikes } from "@/hooks/useLikes";
 
 const SORT_OPTIONS = [
   { label: "最新", value: "latest" },
@@ -47,6 +48,8 @@ export default function Home() {
     },
   });
 
+  const likedPostIds = useLikes("post", posts.map((p) => p.id));
+
   let filteredPosts = posts;
 
   if (tagFilter) {
@@ -61,7 +64,11 @@ export default function Home() {
   }
 
   if (sortTab === "hot") {
-    filteredPosts = [...filteredPosts].sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
+    filteredPosts = [...filteredPosts].sort((a, b) => {
+      const likeDiff = (b.like_count || 0) - (a.like_count || 0);
+      if (likeDiff !== 0) return likeDiff;
+      return new Date(b.created_date) - new Date(a.created_date);
+    });
   }
 
   // Pinned always on top
@@ -134,7 +141,7 @@ export default function Home() {
               )}
 
               {!isLoading && !isError && filteredPosts.map((post) => (
-                <PostCard key={post.id} post={post} categories={categories} tags={tags} />
+                <PostCard key={post.id} post={post} categories={categories} tags={tags} likedPostIds={likedPostIds} />
               ))}
             </div>
           </main>

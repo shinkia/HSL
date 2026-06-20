@@ -1,0 +1,27 @@
+{
+  "name": "Reaction",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user who liked"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "post",
+        "comment"
+      ],
+      "description": "Type of target being liked"
+    },
+    "target_id": {
+      "type": "string",
+      "description": "ID of the post or comment being liked"
+    }
+  },
+  "required": [
+    "user_id",
+    "target_type",
+    "target_id"
+  ]
+}

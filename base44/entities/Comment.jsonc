@@ -34,6 +34,11 @@
         "spam"
       ],
       "default": "approved"
+    },
+    "like_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Denormalized like count"
     }
   },
   "required": [
