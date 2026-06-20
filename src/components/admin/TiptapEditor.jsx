@@ -5,6 +5,7 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { CustomImage } from "./CustomImageExtension";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import {
   Bold, Italic, Heading2, Heading3, List, ListOrdered,
   Link as LinkIcon, Image as ImageIcon, Undo, Redo, Loader2,
@@ -41,15 +42,27 @@ export default function TiptapEditor({ value, onChange }) {
     }
   }, [value, editor]);
 
+  const failedFileRef = useRef(null);
+
   const handleImageUpload = useCallback(async (file) => {
     if (!file || !editor) return;
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       editor.chain().focus().setImage({ src: file_url, width: "100%" }).run();
-      toast({ title: "图片上传成功" });
+      toast({ title: "上传成功" });
+      failedFileRef.current = null;
     } catch (err) {
-      toast({ title: "图片上传失败", variant: "destructive" });
+      failedFileRef.current = file;
+      toast({
+        title: "上传失败，请重试",
+        variant: "destructive",
+        action: (
+          <ToastAction altText="重试" onClick={() => handleImageUpload(failedFileRef.current)}>
+            重试
+          </ToastAction>
+        ),
+      });
     } finally {
       setUploading(false);
     }

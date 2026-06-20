@@ -3,7 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Tag } from "lucide-react";
+import EmptyState from "@/components/common/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function TagsManager() {
@@ -11,7 +13,7 @@ export default function TagsManager() {
   const { toast } = useToast();
   const [name, setName] = useState("");
 
-  const { data: tags = [] } = useQuery({
+  const { data: tags = [], isLoading } = useQuery({
     queryKey: ["tags"],
     queryFn: () => base44.entities.Tag.list(),
   });
@@ -48,7 +50,10 @@ export default function TagsManager() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {tags.map((tag) => (
+        {isLoading && Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="h-9 w-20 rounded-full" />
+        ))}
+        {!isLoading && tags.map((tag) => (
           <div
             key={tag.id}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border text-sm"
@@ -59,7 +64,11 @@ export default function TagsManager() {
             </button>
           </div>
         ))}
-        {tags.length === 0 && <p className="text-muted-foreground">暂无标签</p>}
+        {!isLoading && tags.length === 0 && (
+          <div className="w-full">
+            <EmptyState icon={Tag} title="暂无标签" description="在上方输入框添加第一个标签" />
+          </div>
+        )}
       </div>
     </div>
   );

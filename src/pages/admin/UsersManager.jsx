@@ -4,11 +4,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
+import EmptyState from "@/components/common/EmptyState";
+import TableSkeleton from "@/components/common/TableSkeleton";
+import { Users } from "lucide-react";
 
 export default function UsersManager() {
   const queryClient = useQueryClient();
 
-  const { data: users = [] } = useQuery({
+  const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: () => base44.entities.User.list("-created_date"),
   });
@@ -41,7 +44,8 @@ export default function UsersManager() {
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {isLoading && <TableSkeleton cols={4} />}
+              {!isLoading && users.map((user) => (
                 <tr key={user.id} className="border-b last:border-0">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -72,9 +76,11 @@ export default function UsersManager() {
                   </td>
                 </tr>
               ))}
-              {users.length === 0 && (
+              {!isLoading && users.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground">暂无用户</td>
+                  <td colSpan={4}>
+                    <EmptyState icon={Users} title="暂无用户" description="邀请用户加入后将显示在这里" />
+                  </td>
                 </tr>
               )}
             </tbody>

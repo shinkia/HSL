@@ -7,9 +7,10 @@ import Breadcrumbs from "@/components/forum/Breadcrumbs";
 import ContactButtons from "@/components/forum/ContactButtons";
 import CommentSection from "@/components/forum/CommentSection";
 import PostCard from "@/components/forum/PostCard";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
-import { Calendar, Eye } from "lucide-react";
+import PostDetailSkeleton from "@/components/common/PostDetailSkeleton";
+import ErrorState from "@/components/common/ErrorState";
+import EmptyState from "@/components/common/EmptyState";
+import { Calendar, Eye, FileX } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
@@ -37,7 +38,7 @@ export default function PostDetail() {
     queryFn: () => base44.entities.Tag.list(),
   });
 
-  const { data: posts = [], isLoading } = useQuery({
+  const { data: posts = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["post", slug],
     queryFn: () => base44.entities.Post.filter({ slug, status: "published" }),
   });
@@ -70,11 +71,21 @@ export default function PostDetail() {
     return (
       <div className="min-h-screen" style={{ backgroundColor: "#FAFAFA" }}>
         <Navbar categories={categories} tags={tags} memberCount={0} />
-        <div className="max-w-3xl mx-auto px-4 py-8">
-          <Skeleton className="h-72 w-full rounded-xl mb-6" />
-          <Skeleton className="h-8 w-3/4 mb-4" />
-          <Skeleton className="h-4 w-1/3 mb-8" />
-          <Skeleton className="h-48 w-full" />
+        <div className="max-w-3xl mx-auto px-4 py-6">
+          <PostDetailSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: "#FAFAFA" }}>
+        <Navbar categories={categories} tags={tags} memberCount={0} />
+        <div className="max-w-3xl mx-auto px-4 py-6">
+          <div className="bg-white rounded-2xl border shadow-sm">
+            <ErrorState onRetry={refetch} />
+          </div>
         </div>
       </div>
     );
@@ -84,9 +95,16 @@ export default function PostDetail() {
     return (
       <div className="min-h-screen" style={{ backgroundColor: "#FAFAFA" }}>
         <Navbar categories={categories} tags={tags} memberCount={0} />
-        <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-          <p className="text-lg text-gray-400">帖子不存在</p>
-          <Link to="/" className="text-primary hover:underline mt-4 inline-block">返回首页</Link>
+        <div className="max-w-3xl mx-auto px-4 py-6">
+          <div className="bg-white rounded-2xl border shadow-sm">
+            <EmptyState
+              icon={FileX}
+              title="帖子不存在"
+              description="该帖子可能已被删除或链接有误"
+              actionLabel="返回首页"
+              onAction={() => window.location.href = "/"}
+            />
+          </div>
         </div>
       </div>
     );

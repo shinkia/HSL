@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, Send } from "lucide-react";
+import EmptyState from "@/components/common/EmptyState";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
@@ -66,9 +67,7 @@ export default function CommentSection({ postId, comments = [], onCommentAdded }
       {/* Comments list */}
       <div className="space-y-4">
         {comments.length === 0 && (
-          <p className="text-center text-muted-foreground text-sm py-8">
-            暂无评论，来说第一句吧
-          </p>
+          <EmptyState icon={MessageCircle} title="成为第一个评论的人" />
         )}
         {comments.map((comment) => (
           <div key={comment.id} className="flex gap-3">

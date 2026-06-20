@@ -6,8 +6,10 @@ import Navbar from "@/components/forum/Navbar";
 import Sidebar from "@/components/forum/Sidebar";
 import PostCard from "@/components/forum/PostCard";
 import CityTabs from "@/components/forum/CityTabs";
-import { Skeleton } from "@/components/ui/skeleton";
-import { FileText } from "lucide-react";
+import PostListSkeleton from "@/components/common/PostListSkeleton";
+import EmptyState from "@/components/common/EmptyState";
+import ErrorState from "@/components/common/ErrorState";
+import { FileText, Search, FolderOpen, Tag } from "lucide-react";
 
 const SORT_OPTIONS = [
   { label: "最新", value: "latest" },
@@ -38,7 +40,7 @@ export default function Home() {
     queryFn: () => base44.entities.User.list(),
   });
 
-  const { data: posts = [], isLoading } = useQuery({
+  const { data: posts = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["posts", categoryFilter, tagFilter, searchQuery],
     queryFn: async () => {
       const filter = { status: "published" };
@@ -131,25 +133,23 @@ export default function Home() {
 
             {/* Post list */}
             <div className="bg-white rounded-xl border overflow-hidden">
-              {isLoading &&
-                Array(6).fill(0).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 px-4 py-3 border-b">
-                    <Skeleton className="w-[72px] h-[72px] rounded-lg shrink-0" />
-                    <div className="flex-1">
-                      <Skeleton className="h-4 w-3/4 mb-2" />
-                      <Skeleton className="h-3 w-1/2" />
-                    </div>
-                  </div>
-                ))}
+              {isLoading && <PostListSkeleton />}
 
-              {!isLoading && filteredPosts.length === 0 && (
-                <div className="text-center py-20">
-                  <FileText className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-                  <p className="text-gray-400">暂无帖子</p>
-                </div>
+              {isError && <ErrorState onRetry={refetch} />}
+
+              {!isLoading && !isError && filteredPosts.length === 0 && (
+                <EmptyState
+                  icon={searchQuery ? Search : categoryFilter ? FolderOpen : tagFilter ? Tag : FileText}
+                  title={
+                    searchQuery ? "未找到相关帖子，试试其他关键词"
+                    : categoryFilter ? "该分类下暂无帖子"
+                    : tagFilter ? "该标签下暂无帖子"
+                    : "暂无帖子"
+                  }
+                />
               )}
 
-              {filteredPosts.map((post) => (
+              {!isLoading && !isError && filteredPosts.map((post) => (
                 <PostCard key={post.id} post={post} categories={categories} tags={tags} />
               ))}
             </div>

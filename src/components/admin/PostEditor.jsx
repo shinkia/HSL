@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import SeoPanel from "./SeoPanel";
 import TiptapEditor from "./TiptapEditor";
-import { Save, ArrowLeft, Upload, ImageIcon } from "lucide-react";
+import { Save, ArrowLeft, Upload, ImageIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 const emptyPost = {
@@ -72,9 +72,15 @@ export default function PostEditor() {
     const file = e.target.files[0];
     if (!file) return;
     setCoverUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    update("cover_image", file_url);
-    setCoverUploading(false);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      update("cover_image", file_url);
+      toast({ title: "上传成功" });
+    } catch (err) {
+      toast({ title: "上传失败，请重试", variant: "destructive" });
+    } finally {
+      setCoverUploading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -239,7 +245,12 @@ export default function PostEditor() {
               onChange={(e) => update("cover_image", e.target.value)}
               placeholder="https://..."
             />
-            {form.cover_image && (
+            {coverUploading && (
+              <div className="rounded-lg w-full h-32 bg-muted flex items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            {!coverUploading && form.cover_image && (
               <img src={form.cover_image} alt="" className="rounded-lg w-full h-32 object-cover bg-muted" />
             )}
           </div>

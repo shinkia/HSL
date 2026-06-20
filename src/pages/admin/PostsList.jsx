@@ -8,14 +8,17 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Eye, FileText } from "lucide-react";
+import EmptyState from "@/components/common/EmptyState";
+import ErrorState from "@/components/common/ErrorState";
+import TableSkeleton from "@/components/common/TableSkeleton";
 
 export default function PostsList() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: posts = [], isLoading } = useQuery({
+  const { data: posts = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-posts"],
     queryFn: () => base44.entities.Post.list("-created_date", 200),
   });
@@ -69,7 +72,15 @@ export default function PostsList() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((post) => (
+              {isLoading && <TableSkeleton cols={5} />}
+              {isError && (
+                <tr>
+                  <td colSpan={5}>
+                    <ErrorState onRetry={refetch} />
+                  </td>
+                </tr>
+              )}
+              {!isLoading && !isError && filtered.map((post) => (
                 <tr key={post.id} className="border-b last:border-0 hover:bg-muted/30">
                   <td className="px-4 py-3">
                     <p className="font-medium truncate max-w-xs">{post.title}</p>
@@ -125,10 +136,16 @@ export default function PostsList() {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {!isLoading && !isError && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
-                    {isLoading ? "加载中..." : "暂无帖子"}
+                  <td colSpan={5}>
+                    <EmptyState
+                      icon={FileText}
+                      title="暂无帖子"
+                      actionLabel="新建帖子"
+                      actionIcon={Plus}
+                      onAction={() => navigate("/admin/posts/new")}
+                    />
                   </td>
                 </tr>
               )}

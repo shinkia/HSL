@@ -1,17 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, Trash2, Copy, Image } from "lucide-react";
+import EmptyState from "@/components/common/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function MediaLibrary() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
-  const { data: media = [] } = useQuery({
+  const { data: media = [], isLoading } = useQuery({
     queryKey: ["media"],
     queryFn: () => base44.entities.MediaItem.list("-created_date", 100),
   });
@@ -52,6 +55,7 @@ export default function MediaLibrary() {
           <Upload className="h-4 w-4" />
           {uploading ? "上传中..." : "上传文件"}
           <input
+            ref={fileInputRef}
             type="file"
             multiple
             accept="image/*,video/*,.pdf,.doc,.docx"
@@ -62,7 +66,15 @@ export default function MediaLibrary() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {media.map((item) => (
+        {isLoading && Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className="border rounded-xl overflow-hidden bg-card">
+            <Skeleton className="aspect-square w-full" />
+            <div className="p-2">
+              <Skeleton className="h-3 w-3/4" />
+            </div>
+          </div>
+        ))}
+        {!isLoading && media.map((item) => (
           <div key={item.id} className="border rounded-xl overflow-hidden bg-card group">
             <div className="aspect-square bg-muted flex items-center justify-center relative">
               {item.type === "image" ? (
@@ -84,10 +96,15 @@ export default function MediaLibrary() {
             </div>
           </div>
         ))}
-        {media.length === 0 && (
-          <div className="col-span-full text-center py-20">
-            <Image className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground">暂无媒体文件</p>
+        {!isLoading && media.length === 0 && (
+          <div className="col-span-full">
+            <EmptyState
+              icon={Image}
+              title="暂无媒体文件"
+              actionLabel="上传文件"
+              actionIcon={Upload}
+              onAction={() => fileInputRef.current?.click()}
+            />
           </div>
         )}
       </div>
