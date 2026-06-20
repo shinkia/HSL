@@ -12,7 +12,7 @@ import PostDetailSkeleton from "@/components/common/PostDetailSkeleton";
 import ErrorState from "@/components/common/ErrorState";
 import EmptyState from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
-import { Calendar, Eye, FileX, Pencil, Trash2 } from "lucide-react";
+import { Calendar, Eye, FileX, Pencil, Trash2, Share2 } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { useAuth } from "@/lib/AuthContext";
@@ -21,6 +21,7 @@ import { toast } from "@/components/ui/use-toast";
 import LikeButton from "@/components/forum/LikeButton";
 import { useLikes } from "@/hooks/useLikes";
 import ReportButton from "@/components/forum/ReportButton";
+import ShareButton from "@/components/forum/ShareButton";
 
 export default function PostDetail() {
   const { locationSlug, postSlug } = useParams();
@@ -232,8 +233,15 @@ export default function PostDetail() {
               <span className="text-xs text-gray-400 flex items-center gap-1 ml-auto">
                 <Eye className="h-3.5 w-3.5" />
                 {post.view_count || 0} 阅读
+                {post.share_count > 0 && (
+                  <span className="ml-2 flex items-center gap-1">
+                    <Share2 className="h-3.5 w-3.5" />
+                    {post.share_count}
+                  </span>
+                )}
               </span>
               <LikeButton targetType="post" targetId={post.id} count={post.like_count || 0} liked={postLiked} />
+              <ShareButton post={post} />
             </div>
 
             {/* Author actions */}
@@ -275,8 +283,9 @@ export default function PostDetail() {
               </div>
             )}
 
-            {/* Report button */}
-            <div className="border-t pt-4 mt-6 flex justify-end">
+            {/* Report + Share buttons */}
+            <div className="border-t pt-4 mt-6 flex justify-between items-center">
+              <ShareButton post={post} />
               <ReportButton targetType="post" targetId={post.id} />
             </div>
           </div>
