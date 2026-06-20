@@ -7,8 +7,14 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 
+import PublicLayout from '@/components/forum/PublicLayout';
 import Home from '@/pages/Home';
 import PostDetail from '@/pages/PostDetail';
+import CategoryPage from '@/pages/CategoryPage';
+import TagPage from '@/pages/TagPage';
+import CategoriesPage from '@/pages/CategoriesPage';
+import TagsPage from '@/pages/TagsPage';
+import StaticPage from '@/pages/StaticPage';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import PostsList from '@/pages/admin/PostsList';
@@ -40,8 +46,19 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/posts/:slug" element={<PostDetail />} />
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/posts/:slug" element={<PostDetail />} />
+        <Route path="/category/:slug" element={<CategoryPage />} />
+        <Route path="/tag/:slug" element={<TagPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
+        <Route path="/tags" element={<TagsPage />} />
+        <Route path="/about" element={<StaticPage />} />
+        <Route path="/contact" element={<StaticPage />} />
+        <Route path="/terms" element={<StaticPage />} />
+        <Route path="/privacy" element={<StaticPage />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Route>
       <Route element={<AdminLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/posts" element={<PostsList />} />
@@ -52,7 +69,6 @@ const AuthenticatedApp = () => {
         <Route path="/admin/media" element={<MediaLibrary />} />
         <Route path="/admin/users" element={<UsersManager />} />
       </Route>
-      <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 };

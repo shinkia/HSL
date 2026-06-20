@@ -89,7 +89,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAFA" }}>
+    <div className="flex-1 overflow-x-hidden">
       <Navbar
         categories={categories}
         tags={tags}

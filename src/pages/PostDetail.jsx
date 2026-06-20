@@ -59,7 +59,7 @@ export default function PostDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAFA" }}>
+      <div className="flex-1 overflow-x-hidden">
         <Navbar categories={categories} tags={tags} memberCount={0} />
         <div className="max-w-3xl mx-auto px-4 py-6">
           <PostDetailSkeleton />
@@ -70,7 +70,7 @@ export default function PostDetail() {
 
   if (isError) {
     return (
-      <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAFA" }}>
+      <div className="flex-1 overflow-x-hidden">
         <Navbar categories={categories} tags={tags} memberCount={0} />
         <div className="max-w-3xl mx-auto px-4 py-6">
           <div className="bg-white rounded-2xl border shadow-sm">
@@ -83,7 +83,7 @@ export default function PostDetail() {
 
   if (!post) {
     return (
-      <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAFA" }}>
+      <div className="flex-1 overflow-x-hidden">
         <Navbar categories={categories} tags={tags} memberCount={0} />
         <div className="max-w-3xl mx-auto px-4 py-6">
           <div className="bg-white rounded-2xl border shadow-sm">
@@ -101,14 +101,14 @@ export default function PostDetail() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#FAFAFA" }}>
+    <div className="flex-1 overflow-x-hidden">
       <Navbar categories={categories} tags={tags} memberCount={0} />
 
       <div className="max-w-3xl mx-auto py-4 sm:py-6">
         <div className="px-4 mb-4">
           <Breadcrumbs
             items={[
-              ...(category ? [{ label: category.name, href: `/?category=${category.id}` }] : []),
+              ...(category ? [{ label: category.name, href: `/category/${category.slug}` }] : []),
               { label: post.title },
             ]}
           />
@@ -130,20 +130,22 @@ export default function PostDetail() {
             {/* Category + tags */}
             <div className="flex items-center gap-2 flex-wrap mb-3">
               {category && (
-                <span
-                  className="badge-category"
+                <Link
+                  to={`/category/${category.slug}`}
+                  className="badge-category hover:opacity-90 transition-opacity"
                   style={{ backgroundColor: category.color }}
                 >
                   {category.name}
-                </span>
+                </Link>
               )}
               {postTags.map((tag) => (
-                <span
+                <Link
                   key={tag.id}
-                  className="badge-tag"
+                  to={`/tag/${tag.slug}`}
+                  className="badge-tag hover:opacity-80 transition-opacity"
                 >
                   {tag.name}
-                </span>
+                </Link>
               ))}
             </div>
 

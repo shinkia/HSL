@@ -1,15 +1,17 @@
 import React from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { Users, Folder, Tag } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Users } from "lucide-react";
 
 export default function Sidebar({ categories = [], tags = [], memberCount = 0, onNavigate }) {
-  const [searchParams] = useSearchParams();
-  const activeCategory = searchParams.get("category") || "";
-  const activeTag = searchParams.get("tag") || "";
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   const handleClick = () => {
     if (onNavigate) onNavigate();
   };
+
+  const isCategoryActive = (cat) => currentPath === `/category/${cat.slug}`;
+  const isTagActive = (tag) => currentPath === `/tag/${tag.slug}`;
 
   return (
     <aside className="space-y-8">
@@ -24,7 +26,7 @@ export default function Sidebar({ categories = [], tags = [], memberCount = 0, o
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">分类</h3>
           <Link
-            to="/"
+            to="/categories"
             onClick={handleClick}
             className="text-xs text-primary hover:underline"
           >
@@ -35,10 +37,10 @@ export default function Sidebar({ categories = [], tags = [], memberCount = 0, o
           {categories.map((cat) => (
             <Link
               key={cat.id}
-              to={`/?category=${cat.id}`}
+              to={`/category/${cat.slug}`}
               onClick={handleClick}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                activeCategory === cat.id
+                isCategoryActive(cat)
                   ? "bg-accent text-accent-foreground font-medium"
                   : "hover:bg-muted text-foreground/80"
               }`}
@@ -58,7 +60,7 @@ export default function Sidebar({ categories = [], tags = [], memberCount = 0, o
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">标签</h3>
           <Link
-            to="/"
+            to="/tags"
             onClick={handleClick}
             className="text-xs text-primary hover:underline"
           >
@@ -69,10 +71,10 @@ export default function Sidebar({ categories = [], tags = [], memberCount = 0, o
           {tags.map((tag) => (
             <Link
               key={tag.id}
-              to={`/?tag=${tag.id}`}
+              to={`/tag/${tag.slug}`}
               onClick={handleClick}
               className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs transition-colors ${
-                activeTag === tag.id
+                isTagActive(tag)
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted hover:bg-muted/80 text-muted-foreground"
               }`}
