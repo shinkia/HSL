@@ -11,6 +11,7 @@ import Navbar from "@/components/forum/Navbar";
 import { Save, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/AuthContext";
+import HoneypotField from "@/components/HoneypotField";
 import { LOCATIONS } from "@/lib/locations";
 
 export default function WritePost() {
@@ -29,6 +30,7 @@ export default function WritePost() {
   const [content, setContent] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -76,6 +78,11 @@ export default function WritePost() {
       toast({ title: "分类加载中，请稍后", variant: "destructive" });
       return;
     }
+    if (honeypot) {
+      toast({ title: "发布成功" });
+      navigate("/");
+      return;
+    }
     setSaving(true);
     try {
       const data = {
@@ -95,14 +102,22 @@ export default function WritePost() {
         await base44.entities.Post.update(editId, data);
         result = { slug: existingPosts[0]?.slug };
       } else {
-        result = await base44.entities.Post.create(data);
+        const res = await base44.functions.invoke("createPost", data);
+        result = res.data.post;
+        if (res.data.status === "pending") {
+          queryClient.invalidateQueries({ queryKey: ["posts"] });
+          toast({ title: "发布成功，等待管理员审核" });
+          navigate("/");
+          return;
+        }
       }
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       queryClient.invalidateQueries({ queryKey: ["post"] });
       toast({ title: "发布成功" });
       navigate(`/posts/${result.slug || existingPosts[0]?.slug}`);
     } catch (err) {
-      toast({ title: err.message || "发布失败", variant: "destructive" });
+      const msg = err?.response?.data?.error || err.message || "发布失败";
+      toast({ title: msg, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -140,6 +155,7 @@ export default function WritePost() {
           </div>
         )}
 
+        <HoneypotField value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
         <div className="space-y-5">
           <div>
             <Label className="text-xs mb-1.5 block">标题 <span className="text-destructive">*</span></Label>

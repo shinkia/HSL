@@ -8,6 +8,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check rate limit (prevents like-bombing)
+    const rateLimitResult = await base44.asServiceRole.functions.invoke('checkRateLimit', {
+      identifier: user.id,
+      action_type: 'like_toggle',
+      limits: [
+        { window_minutes: 1, max_count: 60 }
+      ]
+    });
+    if (!rateLimitResult.data.allowed) {
+      return Response.json({ error: '操作过于频繁，请稍后再试', retryAfter: rateLimitResult.data.retryAfter }, { status: 429 });
+    }
+
     const { target_type, target_id } = await req.json();
     if (!target_type || !target_id) {
       return Response.json({ error: 'target_type and target_id required' }, { status: 400 });

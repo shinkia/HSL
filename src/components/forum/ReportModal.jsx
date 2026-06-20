@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
 import { toast } from "@/components/ui/use-toast";
+import HoneypotField from "@/components/HoneypotField";
 
 const REASONS = ["垃圾广告", "色情/不良内容", "诈骗", "辱骂/骚扰", "重复内容", "其他"];
 
@@ -13,10 +14,15 @@ export default function ReportModal({ open, onOpenChange, targetType, targetId }
   const [reason, setReason] = useState("");
   const [detail, setDetail] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!reason) return;
+    if (honeypot) {
+      onOpenChange(false);
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await base44.functions.invoke("submitReport", {
@@ -49,6 +55,7 @@ export default function ReportModal({ open, onOpenChange, targetType, targetId }
           <DialogTitle>举报此{targetLabel}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+          <HoneypotField value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
           <div className="space-y-2">
             <Label>举报原因</Label>
             <Select value={reason} onValueChange={setReason}>

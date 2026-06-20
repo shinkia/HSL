@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { FileText, FolderOpen, Tag, Image, Users, LayoutDashboard, ArrowLeft, Flag } from "lucide-react";
+import { FileText, FolderOpen, Tag, Image, Users, LayoutDashboard, ArrowLeft, Flag, ShieldCheck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
@@ -12,6 +12,7 @@ const navItems = [
   { path: "/admin/media", icon: Image, label: "媒体库" },
   { path: "/admin/users", icon: Users, label: "用户管理" },
   { path: "/admin/reports", icon: Flag, label: "举报管理", badge: true },
+  { path: "/admin/system-status", icon: ShieldCheck, label: "系统状态" },
 ];
 
 export default function AdminLayout() {

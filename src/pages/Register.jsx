@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,10 @@ import { UserPlus, Mail, Lock, User, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
+import HoneypotField from "@/components/HoneypotField";
 
-// TODO: Re-enable email verification gate once SMTP/email service is configured (backend phase)
+// reCAPTCHA v3 scaffold — loads script if VITE_RECAPTCHA_SITE_KEY is set
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 export default function Register() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -20,10 +22,38 @@ export default function Register() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
+
+  useEffect(() => {
+    if (RECAPTCHA_SITE_KEY) {
+      const script = document.createElement("script");
+      script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
+      script.async = true;
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  const getRecaptchaToken = async () => {
+    if (RECAPTCHA_SITE_KEY && window.grecaptcha) {
+      try {
+        return await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: "register" });
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Honeypot check — silently return success to bot
+    if (honeypot) {
+      toast({ title: "注册成功，欢迎加入邻里荟" });
+      window.location.href = "/";
+      return;
+    }
 
     if (username.length < 3 || username.length > 20) {
       setError("用户名长度需为3-20个字符");
@@ -48,21 +78,37 @@ export default function Register() {
 
     setLoading(true);
     try {
+      // Pre-registration check (rate limit, suspicious username, reCAPTCHA)
+      const recaptchaToken = await getRecaptchaToken();
+      const checkRes = await base44.functions.invoke("checkRegistration", {
+        username,
+        honeypot,
+        recaptcha_token: recaptchaToken,
+      });
+      if (checkRes.data.honeypot_caught) {
+        toast({ title: "注册成功，欢迎加入邻里荟" });
+        window.location.href = "/";
+        return;
+      }
+      if (!checkRes.data.allowed) {
+        setError(checkRes.data.error || "注册失败");
+        return;
+      }
+
       await base44.auth.register({ email, password });
-      // Email verification deferred — log in immediately after registration
       try {
         await base44.auth.loginViaEmailPassword(email, password);
         await base44.auth.updateMe({
           username,
-          email_verified: true,
           avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username)}`,
         });
+        // Send verification email (auto-verifies if email service fails)
+        await base44.functions.invoke("sendVerificationEmail");
       } catch (loginErr) {
-        // If auto-login fails, fall back to login page
         navigate("/login");
         return;
       }
-      toast({ title: "注册成功，欢迎加入邻里荟" });
+      toast({ title: "注册成功，请验证邮箱" });
       window.location.href = "/";
     } catch (err) {
       setError(err.message || "注册失败");
@@ -192,6 +238,7 @@ export default function Register() {
             <Link to="/privacy" className="text-primary hover:underline">隐私政策</Link>
           </Label>
         </div>
+        <HoneypotField value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
           {loading ? (
             <>

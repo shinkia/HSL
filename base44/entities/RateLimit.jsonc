@@ -1,0 +1,18 @@
+{
+  "name": "RateLimit",
+  "type": "object",
+  "properties": {
+    "identifier": {
+      "type": "string",
+      "description": "User ID or IP address"
+    },
+    "action_type": {
+      "type": "string",
+      "description": "register, login_failed, post_create, comment_create, report_create, like_toggle, resend_verification"
+    }
+  },
+  "required": [
+    "identifier",
+    "action_type"
+  ]
+}

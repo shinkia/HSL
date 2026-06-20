@@ -34,6 +34,9 @@ import TagsManager from '@/pages/admin/TagsManager';
 import MediaLibrary from '@/pages/admin/MediaLibrary';
 import UsersManager from '@/pages/admin/UsersManager';
 import ReportsManager from '@/pages/admin/ReportsManager';
+import SystemStatus from '@/pages/admin/SystemStatus';
+import Verify from '@/pages/Verify';
+import Banned from '@/pages/Banned';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -63,6 +66,8 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-pending" element={<VerifyPending />} />
+      <Route path="/verify" element={<Verify />} />
+      <Route path="/banned" element={<Banned />} />
       <Route path="/write" element={<WritePost />} />
 
       <Route element={<PublicLayout />}>
@@ -97,6 +102,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/media" element={<MediaLibrary />} />
         <Route path="/admin/users" element={<UsersManager />} />
         <Route path="/admin/reports" element={<ReportsManager />} />
+        <Route path="/admin/system-status" element={<SystemStatus />} />
       </Route>
     </Routes>
   );

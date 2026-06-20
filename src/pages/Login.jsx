@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
+import HoneypotField from "@/components/HoneypotField";
 import GoogleIcon from "@/components/GoogleIcon";
 
 export default function Login() {
@@ -17,15 +18,41 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Honeypot check
+    if (honeypot) {
+      window.location.href = returnUrl;
+      return;
+    }
+
     setLoading(true);
     try {
+      // Pre-login check (ban status, rate limit)
+      const checkRes = await base44.functions.invoke("preLoginCheck", { email });
+      if (checkRes.data.banned) {
+        const params = new URLSearchParams();
+        if (checkRes.data.reason) params.set("reason", checkRes.data.reason);
+        if (checkRes.data.banned_until) params.set("banned_until", checkRes.data.banned_until);
+        navigate(`/banned?${params.toString()}`);
+        return;
+      }
+      if (checkRes.data.rate_limited) {
+        setError("登录尝试过多，请稍后再试");
+        return;
+      }
+
       await base44.auth.loginViaEmailPassword(email, password);
       window.location.href = returnUrl;
     } catch (err) {
+      // Record failed login attempt for rate limiting
+      try {
+        await base44.functions.invoke("recordFailedLogin", { email });
+      } catch (e) {}
       setError(err.message || "邮箱或密码错误");
     } finally {
       setLoading(false);
@@ -75,6 +102,7 @@ export default function Login() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <HoneypotField value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
         <div className="space-y-2">
           <Label htmlFor="email">邮箱</Label>
           <div className="relative">

@@ -8,6 +8,8 @@ import EmptyState from "@/components/common/EmptyState";
 import LikeButton from "@/components/forum/LikeButton";
 import ReportButton from "@/components/forum/ReportButton";
 import { useAuth } from "@/lib/AuthContext";
+import { toast } from "@/components/ui/use-toast";
+import HoneypotField from "@/components/HoneypotField";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
@@ -15,20 +17,31 @@ export default function CommentSection({ postId, comments = [], onCommentAdded, 
   const { user, isAuthenticated } = useAuth();
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!content.trim()) return;
+    if (honeypot) {
+      setContent("");
+      return;
+    }
     setSubmitting(true);
-    await base44.entities.Comment.create({
-      post_id: postId,
-      user_id: user.id,
-      author_name: user.username || user.full_name || user.email,
-      author_email: user.email,
-      content: content.trim(),
-      status: "approved",
-    });
-    setContent("");
+    try {
+      const res = await base44.functions.invoke("createComment", {
+        post_id: postId,
+        content: content.trim(),
+      });
+      setContent("");
+      if (res.data.status === "pending") {
+        toast({ title: "评论已提交，等待管理员审核" });
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.error || err.message || "评论失败";
+      toast({ title: msg, variant: "destructive" });
+      setSubmitting(false);
+      return;
+    }
     setSubmitting(false);
     if (onCommentAdded) onCommentAdded();
   };
@@ -99,6 +112,7 @@ export default function CommentSection({ postId, comments = [], onCommentAdded, 
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-3 p-4 rounded-xl bg-muted/50">
+          <HoneypotField value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
           <Textarea
             placeholder="分享您的想法..."
             value={content}

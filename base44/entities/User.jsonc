@@ -28,6 +28,42 @@
       "type": "boolean",
       "default": false
     },
+    "verification_token": {
+      "type": "string",
+      "description": "Email verification token (UUID)"
+    },
+    "verification_token_expires": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Verification token expiry (24h)"
+    },
+    "first_post_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user's first post has been approved by admin"
+    },
+    "first_comment_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user's first comment has been approved by admin"
+    },
+    "banned": {
+      "type": "boolean",
+      "default": false
+    },
+    "banned_reason": {
+      "type": "string",
+      "description": "Reason for ban"
+    },
+    "banned_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ban expiry (null = permanent)"
+    },
+    "banned_by": {
+      "type": "string",
+      "description": "Admin user_id who issued the ban"
+    },
     "post_count": {
       "type": "number",
       "default": 0

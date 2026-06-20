@@ -1,0 +1,33 @@
+{
+  "name": "BanLog",
+  "type": "object",
+  "properties": {
+    "admin_user_id": {
+      "type": "string",
+      "description": "Admin who performed the action"
+    },
+    "target_user_id": {
+      "type": "string",
+      "description": "User who was banned/unbanned"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "ban",
+        "unban"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "banned_until": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "admin_user_id",
+    "target_user_id",
+    "action"
+  ]
+}
