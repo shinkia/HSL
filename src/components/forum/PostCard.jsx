@@ -4,21 +4,6 @@ import { MessageCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
-// Tag colors cycle
-const TAG_COLORS = [
-  { bg: "#FEF3C7", text: "#92400E" },
-  { bg: "#DBEAFE", text: "#1E40AF" },
-  { bg: "#FCE7F3", text: "#9D174D" },
-  { bg: "#D1FAE5", text: "#065F46" },
-  { bg: "#EDE9FE", text: "#5B21B6" },
-  { bg: "#FEE2E2", text: "#991B1B" },
-  { bg: "#E0F2FE", text: "#075985" },
-];
-
-function tagColor(index) {
-  return TAG_COLORS[index % TAG_COLORS.length];
-}
-
 const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='%23f3f4f6'%3E%3Crect width='80' height='80'/%3E%3C/svg%3E";
 
 export default function PostCard({ post, categories = [], tags = [] }) {
@@ -61,28 +46,20 @@ export default function PostCard({ post, categories = [], tags = [] }) {
           <div className="flex items-center gap-1.5 flex-wrap">
             {category && (
               <span
-                className="inline-block px-2 py-0.5 text-[11px] font-medium rounded"
-                style={{
-                  backgroundColor: category.color + "18",
-                  color: category.color,
-                  border: `1px solid ${category.color}30`,
-                }}
+                className="badge-category"
+                style={{ backgroundColor: category.color }}
               >
                 {category.name}
               </span>
             )}
-            {postTags.map((tag, i) => {
-              const c = tagColor(i);
-              return (
-                <span
-                  key={tag.id}
-                  className="inline-block px-2 py-0.5 text-[11px] font-medium rounded"
-                  style={{ backgroundColor: c.bg, color: c.text }}
-                >
-                  {tag.name}
-                </span>
-              );
-            })}
+            {postTags.map((tag) => (
+              <span
+                key={tag.id}
+                className="badge-tag"
+              >
+                {tag.name}
+              </span>
+            ))}
           </div>
         </div>
 

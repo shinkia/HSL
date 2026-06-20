@@ -14,16 +14,6 @@ import { Calendar, Eye, FileX } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
-const TAG_COLORS = [
-  { bg: "#FEF3C7", text: "#92400E" },
-  { bg: "#DBEAFE", text: "#1E40AF" },
-  { bg: "#FCE7F3", text: "#9D174D" },
-  { bg: "#D1FAE5", text: "#065F46" },
-  { bg: "#EDE9FE", text: "#5B21B6" },
-  { bg: "#FEE2E2", text: "#991B1B" },
-  { bg: "#E0F2FE", text: "#075985" },
-];
-
 export default function PostDetail() {
   const { slug } = useParams();
   const queryClient = useQueryClient();
@@ -141,28 +131,20 @@ export default function PostDetail() {
             <div className="flex items-center gap-2 flex-wrap mb-3">
               {category && (
                 <span
-                  className="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full"
-                  style={{
-                    backgroundColor: category.color + "18",
-                    color: category.color,
-                    border: `1px solid ${category.color}30`,
-                  }}
+                  className="badge-category"
+                  style={{ backgroundColor: category.color }}
                 >
                   {category.name}
                 </span>
               )}
-              {postTags.map((tag, i) => {
-                const c = TAG_COLORS[i % TAG_COLORS.length];
-                return (
-                  <span
-                    key={tag.id}
-                    className="inline-block px-2.5 py-0.5 text-xs font-medium rounded-full"
-                    style={{ backgroundColor: c.bg, color: c.text }}
-                  >
-                    {tag.name}
-                  </span>
-                );
-              })}
+              {postTags.map((tag) => (
+                <span
+                  key={tag.id}
+                  className="badge-tag"
+                >
+                  {tag.name}
+                </span>
+              ))}
             </div>
 
             {/* Title */}
