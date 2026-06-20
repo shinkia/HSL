@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -12,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Search, Menu, X, User as UserIcon, FileText, LogOut, MailWarning } from "lucide-react";
+import { Search, Menu, X, User as UserIcon, FileText, LogOut } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -34,16 +33,6 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
     logout();
   };
 
-  const handleResendVerify = async () => {
-    if (user?.email) {
-      try {
-        await base44.auth.resendOtp(user.email);
-      } catch (e) {
-        // ignore
-      }
-    }
-  };
-
   const avatarUrl =
     user?.avatar ||
     (user?.username
@@ -53,21 +42,7 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
 
   return (
     <>
-      {/* Email verification banner */}
-      {isAuthenticated && user && !user.email_verified && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm text-amber-800 flex items-center justify-center gap-3 flex-wrap">
-          <span className="flex items-center gap-1.5">
-            <MailWarning className="h-4 w-4 shrink-0" />
-            请验证您的邮箱才能发帖和评论
-          </span>
-          <button
-            onClick={handleResendVerify}
-            className="text-primary font-medium hover:underline shrink-0"
-          >
-            重新发送验证邮件
-          </button>
-        </div>
-      )}
+      {/* TODO: Re-enable email verification banner once SMTP/email service is configured (backend phase) */}
 
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">

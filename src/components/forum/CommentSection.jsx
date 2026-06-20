@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageCircle, Send, Lock, MailWarning } from "lucide-react";
+import { MessageCircle, Send, Lock } from "lucide-react";
 import EmptyState from "@/components/common/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
 import { formatDistanceToNow } from "date-fns";
@@ -90,11 +90,6 @@ export default function CommentSection({ postId, comments = [], onCommentAdded }
           <Link to={`/login?return=${encodeURIComponent(window.location.pathname)}`}>
             <Button size="sm">登录</Button>
           </Link>
-        </div>
-      ) : !user?.email_verified ? (
-        <div className="p-6 rounded-xl bg-amber-50 text-center">
-          <MailWarning className="h-8 w-8 text-amber-500 mx-auto mb-2" />
-          <p className="text-sm text-amber-700">请先验证邮箱后再评论</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-3 p-4 rounded-xl bg-muted/50">

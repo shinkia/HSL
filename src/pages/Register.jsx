@@ -8,7 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { UserPlus, Mail, Lock, User, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
+import { toast } from "@/components/ui/use-toast";
 
+// TODO: Re-enable email verification gate once SMTP/email service is configured (backend phase)
 export default function Register() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -47,7 +49,21 @@ export default function Register() {
     setLoading(true);
     try {
       await base44.auth.register({ email, password });
-      navigate(`/verify-pending?email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}`);
+      // Email verification deferred — log in immediately after registration
+      try {
+        await base44.auth.loginViaEmailPassword(email, password);
+        await base44.auth.updateMe({
+          username,
+          email_verified: true,
+          avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username)}`,
+        });
+      } catch (loginErr) {
+        // If auto-login fails, fall back to login page
+        navigate("/login");
+        return;
+      }
+      toast({ title: "注册成功，欢迎加入邻里荟" });
+      window.location.href = "/";
     } catch (err) {
       setError(err.message || "注册失败");
     } finally {
