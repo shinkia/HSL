@@ -1,0 +1,8 @@
+# Site is in pre-launch / staging mode.
+# Block all crawlers until content is ready and domain is configured.
+User-agent: *
+Disallow: /
+
+# To re-enable for launch:
+# 1. Replace the line above with: Allow: /
+# 2. Add: Sitemap: https://YOUR-DOMAIN.com/sitemap.xml

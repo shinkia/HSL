@@ -71,7 +71,21 @@ const makeEntity = (table) => ({
 // Entity mappings (Base44 entity name → Supabase table)
 export const Post = makeEntity('posts');
 export const Comment = makeEntity('comments');
-export const Category = makeEntity('categories');
+
+// Category: list() returns categories enriched with published post_count via the view.
+// All other CRUD operates on the base table.
+const _catBase = makeEntity('categories');
+export const Category = {
+  ..._catBase,
+  async list(orderBy = 'sort_order', limit, offset = 0) {
+    let q = supabase.from('category_with_counts').select('*');
+    const order = parseOrder(orderBy);
+    if (order) q = q.order(order.column, { ascending: order.ascending });
+    if (limit) q = q.range(offset, offset + limit - 1);
+    return must(await q);
+  },
+};
+
 export const Tag = makeEntity('tags');
 export const MediaItem = makeEntity('media_items');
 export const Reaction = makeEntity('reactions');

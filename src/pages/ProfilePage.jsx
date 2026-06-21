@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -6,12 +6,17 @@ import Navbar from "@/components/forum/Navbar";
 import Breadcrumbs from "@/components/forum/Breadcrumbs";
 import PostCard from "@/components/forum/PostCard";
 import EmptyState from "@/components/common/EmptyState";
-import { Calendar, MessageCircle, FileText } from "lucide-react";
+import ProfileEditDialog from "@/components/forum/ProfileEditDialog";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/AuthContext";
+import { Calendar, MessageCircle, FileText, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
 export default function ProfilePage() {
   const { username } = useParams();
+  const { user: currentUser } = useAuth();
+  const [editOpen, setEditOpen] = useState(false);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -37,6 +42,7 @@ export default function ProfilePage() {
   const userPosts = user ? allPosts.filter((p) => p.user_id === user.id) : [];
 
   const avatarUrl = user?.avatar || (username ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username)}` : "");
+  const joinedDate = user?.created_at || user?.created_date;
 
   return (
     <div className="flex-1 overflow-x-hidden">
@@ -62,16 +68,30 @@ export default function ProfilePage() {
                 <img
                   src={avatarUrl}
                   alt={user.username}
-                  className="w-20 h-20 rounded-full bg-muted shrink-0"
+                  className="w-20 h-20 rounded-full bg-muted shrink-0 object-cover"
                 />
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-xl font-bold">{user.username}</h1>
+                  <div className="flex items-start justify-between gap-2">
+                    <h1 className="text-xl font-bold">{user.username}</h1>
+                    {currentUser?.id === user.id && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditOpen(true)}
+                      >
+                        <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                        编辑资料
+                      </Button>
+                    )}
+                  </div>
                   {user.bio && <p className="text-sm text-muted-foreground mt-1">{user.bio}</p>}
-                  <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      {format(new Date(user.created_date), "yyyy年MM月加入", { locale: zhCN })}
-                    </span>
+                  <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground flex-wrap">
+                    {joinedDate && (
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {format(new Date(joinedDate), "yyyy年MM月加入", { locale: zhCN })}
+                      </span>
+                    )}
                     <span className="flex items-center gap-1">
                       <FileText className="h-4 w-4" />
                       {user.post_count || userPosts.length} 篇帖子
@@ -99,6 +119,14 @@ export default function ProfilePage() {
               ))}
             </div>
           </>
+        )}
+
+        {user && currentUser?.id === user.id && (
+          <ProfileEditDialog
+            open={editOpen}
+            onOpenChange={setEditOpen}
+            user={user}
+          />
         )}
       </div>
     </div>

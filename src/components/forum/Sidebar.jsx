@@ -49,7 +49,12 @@ export default function Sidebar({ categories = [], tags = [], memberCount = 0, o
                 className="w-2.5 h-2.5 rounded-full shrink-0"
                 style={{ backgroundColor: cat.color }}
               />
-              <span className="truncate">{cat.name}</span>
+              <span className="truncate flex-1">{cat.name}</span>
+              {typeof cat.post_count === "number" && (
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {cat.post_count}
+                </span>
+              )}
             </Link>
           ))}
         </div>
