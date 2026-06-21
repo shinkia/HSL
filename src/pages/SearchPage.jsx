@@ -1,6 +1,7 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { searchPosts } from "@/lib/db";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/forum/Navbar";
 import Sidebar from "@/components/forum/Sidebar";
@@ -29,22 +30,11 @@ export default function SearchPage() {
     queryFn: () => base44.entities.User.list(),
   });
 
-  const { data: posts = [], isLoading } = useQuery({
+  const { data: results = [], isLoading } = useQuery({
     queryKey: ["search-posts", query],
-    queryFn: () => base44.entities.Post.filter({ status: "published" }, "-created_date", 200),
+    queryFn: () => searchPosts(query, 100),
     enabled: !!query,
   });
-
-  const results = query
-    ? posts.filter((p) => {
-        const q = query.toLowerCase();
-        return (
-          p.title?.toLowerCase().includes(q) ||
-          p.content?.toLowerCase().includes(q) ||
-          p.excerpt?.toLowerCase().includes(q)
-        );
-      })
-    : [];
 
   return (
     <div className="flex-1 overflow-x-hidden">

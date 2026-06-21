@@ -17,15 +17,52 @@ const handlers = {
     return { allowed: true, honeypot_caught: false };
   },
 
-  async preLoginCheck() {
-    return { banned: false, rate_limited: false };
+  async preLoginCheck({ email }) {
+    // Check rate limit on login attempts per email
+    const { data, error } = await supabase.rpc('check_rate_limit', {
+      p_identifier: `login:${email}`,
+      p_action_type: 'login_attempt',
+      p_max_count: 10,
+      p_window_seconds: 900, // 15 min
+    });
+    if (error) return { banned: false, rate_limited: false };
+    return { banned: false, rate_limited: !(data?.ok ?? true) };
   },
 
-  async recordFailedLogin() {
-    return { recorded: false };
+  async recordFailedLogin({ email }) {
+    // Already counted by preLoginCheck; this is for explicit failure tracking
+    await supabase.rpc('check_rate_limit', {
+      p_identifier: `login_failed:${email}`,
+      p_action_type: 'login_failed',
+      p_max_count: 5,
+      p_window_seconds: 900,
+    });
+    return { recorded: true };
   },
 
-  async checkRateLimit() {
+  async checkRateLimit({ action, identifier }) {
+    const id = identifier || (await supabase.auth.getUser()).data.user?.id || 'anon';
+    const limits = {
+      post_create: { max: 3, window: 3600 },
+      comment_create: { max: 10, window: 3600 },
+      report_create: { max: 10, window: 3600 },
+      register: { max: 5, window: 86400 },
+    };
+    const cfg = limits[action] || { max: 60, window: 60 };
+    const { data, error } = await supabase.rpc('check_rate_limit', {
+      p_identifier: `${action}:${id}`,
+      p_action_type: action,
+      p_max_count: cfg.max,
+      p_window_seconds: cfg.window,
+    });
+    if (error) return { ok: true }; // fail-open on RPC error
+    return data;
+  },
+
+  async recordPostView({ post_id }) {
+    if (!post_id) return { ok: false };
+    const { error } = await supabase.rpc('record_post_view', { p_post_id: post_id });
+    if (error) return { ok: false };
     return { ok: true };
   },
 

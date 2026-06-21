@@ -90,3 +90,21 @@ export const User = {
     return { ...data, email: auth.user.email };
   },
 };
+
+// Categories enriched with published post_count (uses category_with_counts view)
+export const CategoryWithCounts = {
+  async list(orderBy = 'sort_order') {
+    const order = parseOrder(orderBy);
+    let q = supabase.from('category_with_counts').select('*');
+    if (order) q = q.order(order.column, { ascending: order.ascending });
+    return must(await q);
+  },
+};
+
+// Full-text search via search_posts RPC (with ilike fallback baked into the RPC)
+export const searchPosts = async (q, limit = 50) => {
+  if (!q || q.trim().length === 0) return [];
+  const { data, error } = await supabase.rpc('search_posts', { q: q.trim(), lim: limit });
+  if (error) throw error;
+  return data ?? [];
+};

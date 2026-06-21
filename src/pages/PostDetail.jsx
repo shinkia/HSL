@@ -48,6 +48,13 @@ export default function PostDetail() {
   const postLocation = post ? getLocationByName(post.location) : null;
   const urlLocation = getLocationBySlug(resolveLocationSlug(locationSlug));
 
+  // Record a deduplicated view once the post has loaded
+  useEffect(() => {
+    if (post?.id) {
+      base44.functions.invoke("recordPostView", { post_id: post.id }).catch(() => {});
+    }
+  }, [post?.id]);
+
   // Redirect if the URL location doesn't match the post's actual location
   useEffect(() => {
     if (post && postLocation && urlLocation && postLocation.slug !== urlLocation.slug) {

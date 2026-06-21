@@ -5,6 +5,13 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Sitemap — proxy to Supabase Edge Function
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "https://zazmzusudsldkvahsxgo.supabase.co/functions/v1/sitemap"
+  status = 200
+  force = true
+
 # SPA fallback — every non-asset request returns index.html so React Router can handle it
 [[redirects]]
   from = "/*"
