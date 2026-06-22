@@ -19,41 +19,27 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
 
   // Detect a valid password recovery context.
-  // Supabase appends a recovery token via URL hash (#access_token=...&type=recovery)
-  // or query param (?code=...) and the JS client auto-exchanges it for a session.
+  // Supabase auto-processes the URL hash (#access_token=...) and creates a session.
+  // We just wait briefly for that to happen, then check if a session exists.
   useEffect(() => {
-    const hasResetParams =
-      window.location.hash.includes("access_token") ||
-      window.location.hash.includes("type=recovery") ||
-      window.location.search.includes("code=") ||
-      window.location.search.includes("token=");
-
     const sub = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || (session && hasResetParams)) {
+      if (event === "PASSWORD_RECOVERY" || (session && event === "SIGNED_IN")) {
         setLinkValid(true);
         setReady(true);
       }
     });
 
-    // Also check existing session immediately
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        setLinkValid(true);
-      } else if (!hasResetParams) {
-        // Give Supabase a moment to process URL hash, then conclude invalid
-        setTimeout(() => {
-          supabase.auth.getSession().then(({ data: d2 }) => {
-            setLinkValid(!!d2.session);
-            setReady(true);
-          });
-        }, 800);
-      } else {
-        // hasResetParams = wait briefly for hash processing
-        setTimeout(() => setReady(true), 800);
-      }
-    });
+    // Give Supabase ~1.2s to process the URL, then conclude
+    const t = setTimeout(async () => {
+      const { data } = await supabase.auth.getSession();
+      setLinkValid(!!data.session);
+      setReady(true);
+    }, 1200);
 
-    return () => sub.data.subscription.unsubscribe();
+    return () => {
+      clearTimeout(t);
+      sub.data.subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e) => {
