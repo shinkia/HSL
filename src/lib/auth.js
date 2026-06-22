@@ -60,9 +60,11 @@ export const auth = {
     if (error) throw error;
   },
 
-  // base44.auth.resetPassword — accepts ({password}) OR ("newpassword")
+  // base44.auth.resetPassword — accepts ({password}|{newPassword}) OR ("newpassword")
   async resetPassword(passwordOrObj) {
-    const password = typeof passwordOrObj === 'object' ? passwordOrObj?.password : passwordOrObj;
+    const password = typeof passwordOrObj === 'object'
+      ? (passwordOrObj?.password ?? passwordOrObj?.newPassword)
+      : passwordOrObj;
     if (!password) throw Object.assign(new Error('Password required'), { status: 400 });
     const { error } = await supabase.auth.updateUser({ password });
     if (error) throw error;

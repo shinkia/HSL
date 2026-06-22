@@ -1,64 +1,116 @@
-import React, { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, Loader2, AlertTriangle } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
+import { toast } from "@/components/ui/use-toast";
 
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams();
-  const resetToken = searchParams.get("token");
-
+  const navigate = useNavigate();
+  const [ready, setReady] = useState(false);
+  const [linkValid, setLinkValid] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Detect a valid password recovery context.
+  // Supabase appends a recovery token via URL hash (#access_token=...&type=recovery)
+  // or query param (?code=...) and the JS client auto-exchanges it for a session.
+  useEffect(() => {
+    const hasResetParams =
+      window.location.hash.includes("access_token") ||
+      window.location.hash.includes("type=recovery") ||
+      window.location.search.includes("code=") ||
+      window.location.search.includes("token=");
+
+    const sub = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || (session && hasResetParams)) {
+        setLinkValid(true);
+        setReady(true);
+      }
+    });
+
+    // Also check existing session immediately
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        setLinkValid(true);
+      } else if (!hasResetParams) {
+        // Give Supabase a moment to process URL hash, then conclude invalid
+        setTimeout(() => {
+          supabase.auth.getSession().then(({ data: d2 }) => {
+            setLinkValid(!!d2.session);
+            setReady(true);
+          });
+        }, 800);
+      } else {
+        // hasResetParams = wait briefly for hash processing
+        setTimeout(() => setReady(true), 800);
+      }
+    });
+
+    return () => sub.data.subscription.unsubscribe();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (newPassword.length < 8) {
+      setError("密码至少 8 个字符");
+      return;
+    }
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("两次输入的密码不一致");
       return;
     }
     setLoading(true);
     try {
-      await base44.auth.resetPassword({ resetToken, newPassword });
-      window.location.href = "/login";
+      await base44.auth.resetPassword({ password: newPassword });
+      toast({ title: "密码已重置，请重新登录" });
+      await base44.auth.logout(false);
+      navigate("/login");
     } catch (err) {
-      setError(err.message || "Failed to reset password");
+      setError(err.message || "重置失败，请重试");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!resetToken) {
+  if (!ready) {
+    return (
+      <AuthLayout icon={Lock} title="加载中" subtitle="正在验证重置链接...">
+        <div className="flex justify-center py-6">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  if (!linkValid) {
     return (
       <AuthLayout
         icon={AlertTriangle}
-        title="Invalid reset link"
-        subtitle="This password reset link is missing or invalid"
+        title="重置链接无效"
+        subtitle="此密码重置链接已失效或缺失"
         footer={
           <Link to="/forgot-password" className="text-primary font-medium hover:underline">
-            Request a new link
+            重新申请重置链接
           </Link>
         }
       >
         <p className="text-sm text-foreground text-center">
-          The link you used appears to be incomplete. Please request a new password reset email.
+          您使用的链接看起来不完整或已过期，请重新申请密码重置邮件。
         </p>
       </AuthLayout>
     );
   }
 
   return (
-    <AuthLayout
-      icon={Lock}
-      title="New password"
-      subtitle="Enter your new password below"
-    >
+    <AuthLayout icon={Lock} title="设置新密码" subtitle="请输入您的新密码">
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
           {error}
@@ -66,7 +118,7 @@ export default function ResetPassword() {
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="password">New Password</Label>
+          <Label htmlFor="password">新密码</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
@@ -74,27 +126,29 @@ export default function ResetPassword() {
               type="password"
               autoComplete="new-password"
               autoFocus
-              placeholder="••••••••"
+              placeholder="至少 8 个字符"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="pl-10 h-12"
               required
+              minLength={8}
             />
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirm">Confirm Password</Label>
+          <Label htmlFor="confirm">确认密码</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input
               id="confirm"
               type="password"
               autoComplete="new-password"
-              placeholder="••••••••"
+              placeholder="再输一次"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="pl-10 h-12"
               required
+              minLength={8}
             />
           </div>
         </div>
@@ -102,10 +156,10 @@ export default function ResetPassword() {
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Resetting...
+              重置中...
             </>
           ) : (
-            "Reset password"
+            "重置密码"
           )}
         </Button>
       </form>
