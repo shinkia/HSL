@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { supabase, must } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/forum/Navbar";
 import Sidebar from "@/components/forum/Sidebar";
@@ -9,10 +10,15 @@ import PostCard from "@/components/forum/PostCard";
 import PostListSkeleton from "@/components/common/PostListSkeleton";
 import EmptyState from "@/components/common/EmptyState";
 import ErrorState from "@/components/common/ErrorState";
+import LoadMoreButton from "@/components/common/LoadMoreButton";
 import { Tag } from "lucide-react";
+
+const PAGE_SIZE = 20;
 
 export default function TagPage() {
   const { slug } = useParams();
+  const [limit, setLimit] = useState(PAGE_SIZE);
+  useEffect(() => { setLimit(PAGE_SIZE); }, [slug]);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -31,14 +37,22 @@ export default function TagPage() {
 
   const tag = tags.find((t) => t.slug === slug);
 
-  const { data: posts = [], isLoading, isError, refetch } = useQuery({
-    queryKey: ["posts", "tag", tag?.id],
-    queryFn: async () => {
-      const all = await base44.entities.Post.filter({ status: "published" }, "-created_date", 100);
-      return all.filter((p) => (p.tags || []).includes(tag.id));
-    },
+  const { data: posts = [], isLoading, isFetching, isError, refetch } = useQuery({
+    queryKey: ["posts", "tag", tag?.id, limit],
+    queryFn: async () =>
+      must(
+        await supabase
+          .from("posts")
+          .select("*")
+          .eq("status", "published")
+          .contains("tags", [tag.id])
+          .order("created_at", { ascending: false })
+          .range(0, limit - 1)
+      ),
     enabled: !!tag?.id,
+    keepPreviousData: true,
   });
+  const hasMore = posts.length === limit;
 
   if (!tagLoading && tags.length > 0 && !tag) {
     return (
@@ -80,15 +94,25 @@ export default function TagPage() {
             {isLoading && <PostListSkeleton />}
             {isError && <ErrorState onRetry={refetch} />}
             {!isLoading && !isError && (
-              <div className="bg-white rounded-xl border overflow-hidden">
-                {posts.length === 0 ? (
-                  <EmptyState icon={Tag} title="该标签下暂无帖子" />
-                ) : (
-                  posts.map((post) => (
-                    <PostCard key={post.id} post={post} categories={categories} tags={tags} />
-                  ))
+              <>
+                <div className="bg-white rounded-xl border overflow-hidden">
+                  {posts.length === 0 ? (
+                    <EmptyState icon={Tag} title="该标签下暂无帖子" />
+                  ) : (
+                    posts.map((post) => (
+                      <PostCard key={post.id} post={post} categories={categories} tags={tags} />
+                    ))
+                  )}
+                </div>
+                {posts.length > 0 && (
+                  <LoadMoreButton
+                    hasMore={hasMore}
+                    isLoading={isFetching}
+                    count={posts.length}
+                    onLoadMore={() => setLimit((n) => n + PAGE_SIZE)}
+                  />
                 )}
-              </div>
+              </>
             )}
           </main>
         </div>

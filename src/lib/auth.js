@@ -50,16 +50,20 @@ export const auth = {
     if (error) throw error;
   },
 
-  // base44.auth.resetPasswordRequest({ email })
-  async resetPasswordRequest({ email }) {
+  // base44.auth.resetPasswordRequest — accepts ({email}) OR ("email@x.com")
+  async resetPasswordRequest(emailOrObj) {
+    const email = typeof emailOrObj === 'object' ? emailOrObj?.email : emailOrObj;
+    if (!email) throw Object.assign(new Error('Email required'), { status: 400 });
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${SITE_URL}/reset-password`,
     });
     if (error) throw error;
   },
 
-  // base44.auth.resetPassword({ password })
-  async resetPassword({ password }) {
+  // base44.auth.resetPassword — accepts ({password}) OR ("newpassword")
+  async resetPassword(passwordOrObj) {
+    const password = typeof passwordOrObj === 'object' ? passwordOrObj?.password : passwordOrObj;
+    if (!password) throw Object.assign(new Error('Password required'), { status: 400 });
     const { error } = await supabase.auth.updateUser({ password });
     if (error) throw error;
   },

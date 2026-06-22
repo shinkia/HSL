@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import PostCard from "@/components/forum/PostCard";
 import PostListSkeleton from "@/components/common/PostListSkeleton";
 import EmptyState from "@/components/common/EmptyState";
 import ErrorState from "@/components/common/ErrorState";
+import LoadMoreButton from "@/components/common/LoadMoreButton";
 import Breadcrumbs from "@/components/forum/Breadcrumbs";
 import { FileText } from "lucide-react";
 import { getLocationBySlug, resolveLocationSlug } from "@/lib/locations";
@@ -17,11 +18,14 @@ const SORT_OPTIONS = [
   { label: "最新", value: "latest" },
   { label: "热门", value: "hot" },
 ];
+const PAGE_SIZE = 20;
 
 export default function LocationPage() {
   const { locationSlug } = useParams();
   const navigate = useNavigate();
   const [sortTab, setSortTab] = useState("latest");
+  const [limit, setLimit] = useState(PAGE_SIZE);
+  useEffect(() => { setLimit(PAGE_SIZE); }, [locationSlug, sortTab]);
 
   const resolvedSlug = resolveLocationSlug(locationSlug);
   const location = getLocationBySlug(resolvedSlug);
@@ -41,16 +45,19 @@ export default function LocationPage() {
     queryFn: () => base44.entities.User.list(),
   });
 
-  const { data: posts = [], isLoading, isError, refetch } = useQuery({
-    queryKey: ["posts", "location", location?.name],
+  const sortField = sortTab === "hot" ? "-like_count" : "-created_date";
+  const { data: posts = [], isLoading, isFetching, isError, refetch } = useQuery({
+    queryKey: ["posts", "location", location?.name, sortField, limit],
     queryFn: () =>
       base44.entities.Post.filter(
         { location: location.name, status: "published" },
-        "-created_date",
-        100
+        sortField,
+        limit
       ),
     enabled: !!location,
+    keepPreviousData: true,
   });
+  const hasMore = posts.length === limit;
 
   const likedPostIds = useLikes("post", posts.map((p) => p.id));
 
@@ -73,17 +80,10 @@ export default function LocationPage() {
     );
   }
 
-  let filteredPosts = posts;
-  if (sortTab === "hot") {
-    filteredPosts = [...filteredPosts].sort((a, b) => {
-      const likeDiff = (b.like_count || 0) - (a.like_count || 0);
-      if (likeDiff !== 0) return likeDiff;
-      return new Date(b.created_date) - new Date(a.created_date);
-    });
-  }
-  filteredPosts = [
-    ...filteredPosts.filter((p) => p.is_pinned),
-    ...filteredPosts.filter((p) => !p.is_pinned),
+  // Server-side sort (sortField); just bubble pinned to top
+  let filteredPosts = [
+    ...posts.filter((p) => p.is_pinned),
+    ...posts.filter((p) => !p.is_pinned),
   ];
 
   return (
@@ -129,6 +129,15 @@ export default function LocationPage() {
                   <PostCard key={post.id} post={post} categories={categories} tags={tags} likedPostIds={likedPostIds} />
                 ))}
             </div>
+
+            {!isLoading && !isError && filteredPosts.length > 0 && (
+              <LoadMoreButton
+                hasMore={hasMore}
+                isLoading={isFetching}
+                count={filteredPosts.length}
+                onLoadMore={() => setLimit((n) => n + PAGE_SIZE)}
+              />
+            )}
           </main>
         </div>
       </div>

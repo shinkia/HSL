@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -9,10 +9,15 @@ import PostCard from "@/components/forum/PostCard";
 import PostListSkeleton from "@/components/common/PostListSkeleton";
 import EmptyState from "@/components/common/EmptyState";
 import ErrorState from "@/components/common/ErrorState";
+import LoadMoreButton from "@/components/common/LoadMoreButton";
 import { FolderOpen } from "lucide-react";
+
+const PAGE_SIZE = 20;
 
 export default function CategoryPage() {
   const { slug } = useParams();
+  const [limit, setLimit] = useState(PAGE_SIZE);
+  useEffect(() => { setLimit(PAGE_SIZE); }, [slug]);
 
   const { data: categories = [], isLoading: catLoading } = useQuery({
     queryKey: ["categories"],
@@ -31,11 +36,13 @@ export default function CategoryPage() {
 
   const category = categories.find((c) => c.slug === slug);
 
-  const { data: posts = [], isLoading, isError, refetch } = useQuery({
-    queryKey: ["posts", "category", category?.id],
-    queryFn: () => base44.entities.Post.filter({ category_id: category.id, status: "published" }, "-created_date", 100),
+  const { data: posts = [], isLoading, isFetching, isError, refetch } = useQuery({
+    queryKey: ["posts", "category", category?.id, limit],
+    queryFn: () => base44.entities.Post.filter({ category_id: category.id, status: "published" }, "-created_date", limit),
     enabled: !!category?.id,
+    keepPreviousData: true,
   });
+  const hasMore = posts.length === limit;
 
   if (!catLoading && categories.length > 0 && !category) {
     return (
@@ -72,15 +79,25 @@ export default function CategoryPage() {
             {isLoading && <PostListSkeleton />}
             {isError && <ErrorState onRetry={refetch} />}
             {!isLoading && !isError && (
-              <div className="bg-white rounded-xl border overflow-hidden">
-                {posts.length === 0 ? (
-                  <EmptyState icon={FolderOpen} title="该分类下暂无帖子" />
-                ) : (
-                  posts.map((post) => (
-                    <PostCard key={post.id} post={post} categories={categories} tags={tags} />
-                  ))
+              <>
+                <div className="bg-white rounded-xl border overflow-hidden">
+                  {posts.length === 0 ? (
+                    <EmptyState icon={FolderOpen} title="该分类下暂无帖子" />
+                  ) : (
+                    posts.map((post) => (
+                      <PostCard key={post.id} post={post} categories={categories} tags={tags} />
+                    ))
+                  )}
+                </div>
+                {posts.length > 0 && (
+                  <LoadMoreButton
+                    hasMore={hasMore}
+                    isLoading={isFetching}
+                    count={posts.length}
+                    onLoadMore={() => setLimit((n) => n + PAGE_SIZE)}
+                  />
                 )}
-              </div>
+              </>
             )}
           </main>
         </div>

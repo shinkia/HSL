@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -8,8 +8,11 @@ import PostCard from "@/components/forum/PostCard";
 import PostListSkeleton from "@/components/common/PostListSkeleton";
 import EmptyState from "@/components/common/EmptyState";
 import ErrorState from "@/components/common/ErrorState";
+import LoadMoreButton from "@/components/common/LoadMoreButton";
 import { FileText, Search, FolderOpen, Tag } from "lucide-react";
 import { useLikes } from "@/hooks/useLikes";
+
+const PAGE_SIZE = 20;
 
 const SORT_OPTIONS = [
   { label: "最新", value: "latest" },
@@ -39,14 +42,24 @@ export default function Home() {
     queryFn: () => base44.entities.User.list(),
   });
 
-  const { data: posts = [], isLoading, isError, refetch } = useQuery({
-    queryKey: ["posts", categoryFilter, tagFilter, searchQuery],
+  const [limit, setLimit] = useState(PAGE_SIZE);
+  // Reset to first page when filters change
+  useEffect(() => { setLimit(PAGE_SIZE); }, [categoryFilter, tagFilter, searchQuery, sortTab]);
+
+  const sortField = sortTab === "hot" ? "-like_count" : "-created_date";
+
+  const { data: posts = [], isLoading, isFetching, isError, refetch } = useQuery({
+    queryKey: ["posts", categoryFilter, sortField, limit],
     queryFn: async () => {
       const filter = { status: "published" };
       if (categoryFilter) filter.category_id = categoryFilter;
-      return base44.entities.Post.filter(filter, "-created_date", 100);
+      return base44.entities.Post.filter(filter, sortField, limit);
     },
+    keepPreviousData: true,
   });
+
+  // If the fetch returned fewer rows than limit, no more pages exist
+  const hasMore = posts.length === limit;
 
   const likedPostIds = useLikes("post", posts.map((p) => p.id));
 
@@ -63,13 +76,7 @@ export default function Home() {
     );
   }
 
-  if (sortTab === "hot") {
-    filteredPosts = [...filteredPosts].sort((a, b) => {
-      const likeDiff = (b.like_count || 0) - (a.like_count || 0);
-      if (likeDiff !== 0) return likeDiff;
-      return new Date(b.created_date) - new Date(a.created_date);
-    });
-  }
+  // Sort already done server-side via sortField; pinned still gets bubbled
 
   // Pinned always on top
   filteredPosts = [
@@ -144,6 +151,15 @@ export default function Home() {
                 <PostCard key={post.id} post={post} categories={categories} tags={tags} likedPostIds={likedPostIds} />
               ))}
             </div>
+
+            {!isLoading && !isError && filteredPosts.length > 0 && (
+              <LoadMoreButton
+                hasMore={hasMore}
+                isLoading={isFetching}
+                count={filteredPosts.length}
+                onLoadMore={() => setLimit((n) => n + PAGE_SIZE)}
+              />
+            )}
           </main>
         </div>
       </div>
