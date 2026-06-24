@@ -93,10 +93,50 @@ Helper RLS functions: `is_admin()`, `is_staff()`, `is_banned()`.
 
 ## Conventions for commits
 
-- Branch: `main`
+- **Two branches:** `main` (= production at `hamsaplou.com`) and `staging` (= `staging--hsl1.netlify.app`).
+- **All non-trivial changes must hit `staging` first**, get tested, then merge to `main`.
 - Always run `git pull --rebase` before push to avoid divergence.
 - Watch for stale `.git/index.lock` / `.git/config.lock` — delete if blocking ops.
 - Stop Vite dev server before git ops (releases locks).
+
+## Environments (3 tiers)
+
+| Tier | URL | Supabase | Purpose |
+|---|---|---|---|
+| Local | `http://localhost:5173` | prod (zazmzusudsldkvahsxgo) | Developer machine |
+| Staging | `https://staging--hsl1.netlify.app` | prod (zazmzusudsldkvahsxgo) | Public test env (frontend changes safe; DB changes still risky) |
+| Production | `https://hamsaplou.com` | prod (zazmzusudsldkvahsxgo) | Real users |
+
+**Note on hybrid staging:** staging shares the production Supabase DB (cost: $0/mo). Frontend changes are isolated by branch deploy; backend changes still touch the real DB. For risky DB changes (schema migrations, Edge Function deploys, storage cleanup), create a **temporary Supabase branch** ($0.013/hr), test there, destroy after.
+
+## Deployment workflow
+
+```bash
+# Day-to-day frontend change
+git checkout staging
+# ... edit code ...
+git add -A && git commit -m "..."
+git push origin staging
+# → Netlify auto-deploys to staging--hsl1.netlify.app
+# Test on staging URL
+
+# Once green, promote to production
+git checkout main
+git merge staging
+git push origin main
+# → Netlify auto-deploys to hamsaplou.com
+```
+
+## Risky DB change workflow (e.g., schema migration, destructive Edge Function)
+
+```
+1. Create a Supabase branch:  mcp__supabase__create_branch (cost confirmed first)
+2. Apply migration to branch
+3. Point staging frontend at branch (env var override) — test
+4. If broken: drop branch, no impact on prod
+5. If good: apply same migration to prod via apply_migration
+6. Drop the branch
+```
 
 ---
 

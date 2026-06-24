@@ -1,8 +1,10 @@
 import React from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
-import { FileText, FolderOpen, Tag, Image, Users, LayoutDashboard, ArrowLeft, Flag, ShieldCheck } from "lucide-react";
+import { Link, Outlet, useLocation, Navigate } from "react-router-dom";
+import { FileText, FolderOpen, Tag, Image, Users, LayoutDashboard, ArrowLeft, Flag, ShieldCheck, Loader2, ShieldAlert } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { path: "/admin", icon: LayoutDashboard, label: "仪表盘" },
@@ -17,14 +19,46 @@ const navItems = [
 
 export default function AdminLayout() {
   const { pathname } = useLocation();
+  const { user, isAuthenticated, isLoadingAuth } = useAuth();
+  const isStaff = user?.role === "admin" || user?.role === "moderator";
 
+  // Always call the hook (React rules); just disable for non-staff
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ["pending-report-count"],
     queryFn: async () => {
       const res = await base44.functions.invoke("getPendingReportCount");
       return res.data.count || 0;
     },
+    enabled: isStaff,
   });
+
+  // ---- Role guard (after all hooks) ----
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+  if (!isAuthenticated) {
+    return <Navigate to={`/login?return=${encodeURIComponent(pathname)}`} replace />;
+  }
+  if (!isStaff) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md text-center space-y-4">
+          <ShieldAlert className="h-12 w-12 text-destructive mx-auto" />
+          <h1 className="text-2xl font-bold">无访问权限</h1>
+          <p className="text-muted-foreground">
+            管理后台仅限管理员和版主访问。如果您认为这是错误，请联系站点管理员。
+          </p>
+          <Button asChild>
+            <Link to="/">返回首页</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
