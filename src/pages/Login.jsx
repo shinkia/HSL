@@ -63,19 +63,6 @@ export default function Login() {
     base44.auth.loginWithProvider("google", returnUrl);
   };
 
-  const handleDemo = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      await base44.auth.loginViaEmailPassword("demo@hsl.test", "demo1234");
-      window.location.href = returnUrl;
-    } catch (err) {
-      setError("演示账号暂时不可用");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <AuthLayout
       icon={LogIn}
@@ -90,13 +77,6 @@ export default function Login() {
         </>
       }
     >
-      <Button
-        className="w-full h-12 text-sm font-medium mb-3"
-        onClick={handleDemo}
-        disabled={loading}
-      >
-        ⚡ 试用账号（一键登录）
-      </Button>
       <Button
         variant="outline"
         className="w-full h-12 text-sm font-medium mb-6"
