@@ -35,6 +35,7 @@ import MediaLibrary from '@/pages/admin/MediaLibrary';
 import UsersManager from '@/pages/admin/UsersManager';
 import ReportsManager from '@/pages/admin/ReportsManager';
 import SystemStatus from '@/pages/admin/SystemStatus';
+import LocationsManager from '@/pages/admin/LocationsManager';
 import Verify from '@/pages/Verify';
 import Banned from '@/pages/Banned';
 
@@ -102,6 +103,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/media" element={<MediaLibrary />} />
         <Route path="/admin/users" element={<UsersManager />} />
         <Route path="/admin/reports" element={<ReportsManager />} />
+        <Route path="/admin/locations" element={<LocationsManager />} />
         <Route path="/admin/system-status" element={<SystemStatus />} />
       </Route>
     </Routes>

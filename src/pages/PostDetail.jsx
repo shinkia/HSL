@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { getLocationBySlug, getLocationByName, getPostUrl, resolveLocationSlug } from "@/lib/locations";
+import { getLocationBySlug, getLocationByName, getPostUrl, resolveLocationSlug, useLocations } from "@/lib/locations";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Navbar from "@/components/forum/Navbar";
@@ -29,6 +29,8 @@ export default function PostDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const { data: liveLocations } = useLocations();
+
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: () => base44.entities.Category.list("sort_order"),
@@ -45,8 +47,8 @@ export default function PostDetail() {
   });
 
   const post = posts[0];
-  const postLocation = post ? getLocationByName(post.location) : null;
-  const urlLocation = getLocationBySlug(resolveLocationSlug(locationSlug));
+  const postLocation = post ? getLocationByName(post.location, liveLocations) : null;
+  const urlLocation = getLocationBySlug(resolveLocationSlug(locationSlug, liveLocations), liveLocations);
 
   // Record a deduplicated view once the post has loaded
   useEffect(() => {
@@ -58,7 +60,7 @@ export default function PostDetail() {
   // Redirect if the URL location doesn't match the post's actual location
   useEffect(() => {
     if (post && postLocation && urlLocation && postLocation.slug !== urlLocation.slug) {
-      navigate(getPostUrl(post), { replace: true });
+      navigate(getPostUrl(post, liveLocations), { replace: true });
     }
   }, [post, postLocation, urlLocation, navigate]);
 
