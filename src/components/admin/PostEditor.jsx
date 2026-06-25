@@ -13,6 +13,7 @@ import TiptapEditor from "./TiptapEditor";
 import { Save, ArrowLeft, Upload, ImageIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/AuthContext";
+import { useLocations } from "@/lib/locations";
 
 const emptyPost = {
   title: "", slug: "", content: "", excerpt: "", category_id: "", location: "", tags: [], images: [],
@@ -32,6 +33,7 @@ export default function PostEditor() {
   const { toast } = useToast();
   const { user } = useAuth();
   const isEditing = !!id;
+  const { data: locations = [] } = useLocations();
 
   const [form, setForm] = useState(emptyPost);
   const [saving, setSaving] = useState(false);
@@ -91,21 +93,35 @@ export default function PostEditor() {
       return;
     }
     setSaving(true);
-    const data = { ...form };
-    if (!data.slug) data.slug = generateSlug(data.title);
-    if (!isEditing && user) {
-      data.user_id = user.id;
-      data.author_name = user.username || user.full_name || user.email;
+    try {
+      const data = { ...form };
+      if (!data.slug) data.slug = generateSlug(data.title);
+      // Strip server-managed / non-writable columns
+      delete data.id;
+      delete data.search_tsv;
+      delete data.created_at;
+      delete data.updated_at;
+      delete data.like_count;
+      delete data.reply_count;
+      delete data.view_count;
+      delete data.comment_count;
+      if (!isEditing && user) {
+        data.user_id = user.id;
+        data.author_name = user.username || user.full_name || user.email;
+      }
+      if (isEditing) {
+        await base44.entities.Post.update(id, data);
+      } else {
+        await base44.entities.Post.create(data);
+      }
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      toast({ title: isEditing ? "帖子已更新" : "帖子已创建" });
+      navigate("/admin/posts");
+    } catch (err) {
+      toast({ title: "保存失败", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
-    if (isEditing) {
-      await base44.entities.Post.update(id, data);
-    } else {
-      await base44.entities.Post.create(data);
-    }
-    queryClient.invalidateQueries({ queryKey: ["posts"] });
-    setSaving(false);
-    toast({ title: isEditing ? "帖子已更新" : "帖子已创建" });
-    navigate("/admin/posts");
   };
 
   const toggleTag = (tagId) => {
@@ -218,10 +234,11 @@ export default function PostEditor() {
             <Select value={form.location || ""} onValueChange={(v) => update("location", v)}>
               <SelectTrigger><SelectValue placeholder="选择地区" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="KL">KL</SelectItem>
-                <SelectItem value="Cheras">Cheras</SelectItem>
-                <SelectItem value="Ampang">Ampang</SelectItem>
-                <SelectItem value="Negeri Sembilan">Negeri Sembilan</SelectItem>
+                {locations.map((loc) => (
+                  <SelectItem key={loc.name} value={loc.name}>
+                    {loc.display_name || loc.name}{loc.chinese_name ? ` · ${loc.chinese_name}` : ""}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
