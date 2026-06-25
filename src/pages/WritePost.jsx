@@ -12,7 +12,7 @@ import { Save, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/AuthContext";
 import HoneypotField from "@/components/HoneypotField";
-import { LOCATIONS } from "@/lib/locations";
+import { useLocations } from "@/lib/locations";
 
 export default function WritePost() {
   const [searchParams] = useSearchParams();
@@ -31,6 +31,8 @@ export default function WritePost() {
   const [selectedTags, setSelectedTags] = useState([]);
   const [saving, setSaving] = useState(false);
   const [honeypot, setHoneypot] = useState("");
+
+  const { data: locations = [] } = useLocations();
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -172,8 +174,8 @@ export default function WritePost() {
             <Select value={location} onValueChange={setLocation}>
               <SelectTrigger><SelectValue placeholder="选择地区" /></SelectTrigger>
               <SelectContent>
-                {LOCATIONS.map((l) => (
-                  <SelectItem key={l.name} value={l.name}>{l.name}</SelectItem>
+                {locations.map((l) => (
+                  <SelectItem key={l.name} value={l.name}>{l.display_name || l.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

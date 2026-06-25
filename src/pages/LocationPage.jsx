@@ -11,7 +11,7 @@ import ErrorState from "@/components/common/ErrorState";
 import LoadMoreButton from "@/components/common/LoadMoreButton";
 import Breadcrumbs from "@/components/forum/Breadcrumbs";
 import { FileText } from "lucide-react";
-import { getLocationBySlug, resolveLocationSlug } from "@/lib/locations";
+import { getLocationBySlug, resolveLocationSlug, useLocations } from "@/lib/locations";
 import { useLikes } from "@/hooks/useLikes";
 
 const SORT_OPTIONS = [
@@ -27,8 +27,9 @@ export default function LocationPage() {
   const [limit, setLimit] = useState(PAGE_SIZE);
   useEffect(() => { setLimit(PAGE_SIZE); }, [locationSlug, sortTab]);
 
-  const resolvedSlug = resolveLocationSlug(locationSlug);
-  const location = getLocationBySlug(resolvedSlug);
+  const { data: liveLocations } = useLocations();
+  const resolvedSlug = resolveLocationSlug(locationSlug, liveLocations);
+  const location = getLocationBySlug(resolvedSlug, liveLocations);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],

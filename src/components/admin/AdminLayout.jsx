@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, Outlet, useLocation, Navigate } from "react-router-dom";
-import { FileText, FolderOpen, Tag, Image, Users, LayoutDashboard, ArrowLeft, Flag, ShieldCheck, Loader2, ShieldAlert } from "lucide-react";
+import { FileText, FolderOpen, Tag, Image, Users, LayoutDashboard, ArrowLeft, Flag, ShieldCheck, Loader2, ShieldAlert, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -11,6 +11,7 @@ const navItems = [
   { path: "/admin/posts", icon: FileText, label: "帖子管理" },
   { path: "/admin/categories", icon: FolderOpen, label: "分类管理" },
   { path: "/admin/tags", icon: Tag, label: "标签管理" },
+  { path: "/admin/locations", icon: MapPin, label: "地区管理" },
   { path: "/admin/media", icon: Image, label: "媒体库" },
   { path: "/admin/users", icon: Users, label: "用户管理" },
   { path: "/admin/reports", icon: Flag, label: "举报管理", badge: true },
