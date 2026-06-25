@@ -87,6 +87,7 @@ export const Category = {
 };
 
 export const Tag = makeEntity('tags');
+export const Location = makeEntity('locations');
 export const MediaItem = makeEntity('media_items');
 export const Reaction = makeEntity('reactions');
 export const Report = makeEntity('reports');

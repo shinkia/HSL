@@ -1,22 +1,20 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LOCATIONS } from "@/lib/locations";
-
-const TABS = [
-  { label: "全部", to: "/" },
-  ...LOCATIONS.map((l) => ({
-    label: l.name === "Negeri Sembilan" ? "NS" : l.name,
-    to: `/${l.slug}`,
-  })),
-];
+import { useLocations } from "@/lib/locations";
 
 export default function LocationTabs() {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { data: locations } = useLocations();
+
+  const tabs = [
+    { label: "全部", to: "/" },
+    ...locations.map((l) => ({ label: l.display_name, to: `/${l.slug}` })),
+  ];
 
   return (
     <nav className="flex items-center gap-1 px-4 overflow-x-auto no-scrollbar">
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const isActive =
           tab.to === "/" ? currentPath === "/" : currentPath.startsWith(tab.to);
         return (
