@@ -50,7 +50,7 @@ export default function Register() {
 
     // Honeypot check — silently return success to bot
     if (honeypot) {
-      toast({ title: "注册成功，欢迎加入邻里荟" });
+      toast({ title: "注册成功，欢迎加入 Hamsaplou" });
       window.location.href = "/";
       return;
     }
@@ -86,7 +86,7 @@ export default function Register() {
         recaptcha_token: recaptchaToken,
       });
       if (checkRes.data.honeypot_caught) {
-        toast({ title: "注册成功，欢迎加入邻里荟" });
+        toast({ title: "注册成功，欢迎加入 Hamsaplou" });
         window.location.href = "/";
         return;
       }
@@ -125,7 +125,7 @@ export default function Register() {
     <AuthLayout
       icon={UserPlus}
       title="创建账号"
-      subtitle="加入邻里荟社区"
+      subtitle="加入 Hamsaplou 社区"
       footer={
         <>
           已有账号？{" "}

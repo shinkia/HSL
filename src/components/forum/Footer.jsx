@@ -9,13 +9,11 @@ export default function Footer() {
           {/* Column 1: Site name + tagline */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">论</span>
-              </div>
-              <span className="font-heading font-semibold text-lg">邻里荟</span>
+              <img src="/logo.png" alt="Hamsaplou" className="h-9 w-auto" />
+              <span className="font-heading font-semibold text-lg">Hamsaplou</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              邻里荟社区论坛，连接邻里，分享生活。
+              Hamsaplou 社区论坛 — 连接邻里，分享生活。
             </p>
           </div>
 
@@ -41,7 +39,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t mt-8 pt-6 text-center text-xs text-muted-foreground">
-          © 2026 邻里荟. All rights reserved.
+          © 2026 Hamsaplou. All rights reserved.
         </div>
       </div>
     </footer>

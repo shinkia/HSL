@@ -56,10 +56,8 @@ export default function Navbar({ categories, tags, memberCount, onSearch }) {
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
           {/* Logo */}
           <Link to="/" className="shrink-0 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">论</span>
-            </div>
-            <span className="font-heading font-semibold text-lg hidden sm:block">社区论坛</span>
+            <img src="/logo.png" alt="Hamsaplou" className="h-9 w-auto" />
+            <span className="font-heading font-semibold text-lg hidden sm:block">Hamsaplou</span>
           </Link>
 
           {/* Search - desktop */}
