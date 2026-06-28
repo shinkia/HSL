@@ -8,17 +8,20 @@ import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import HoneypotField from "@/components/HoneypotField";
 import GoogleIcon from "@/components/GoogleIcon";
+import Turnstile from "react-turnstile";
 
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get("return") || "/";
 
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [honeypot, setHoneypot] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,7 +36,7 @@ export default function Login() {
     setLoading(true);
     try {
       // Pre-login check (ban status, rate limit)
-      const checkRes = await base44.functions.invoke("preLoginCheck", { email });
+      const checkRes = await base44.functions.invoke("preLoginCheck", { email, turnstile_token: turnstileToken || null });
       if (checkRes.data.banned) {
         const params = new URLSearchParams();
         if (checkRes.data.reason) params.set("reason", checkRes.data.reason);
@@ -141,7 +144,15 @@ export default function Login() {
             />
           </div>
         </div>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+        {siteKey && (
+          <Turnstile
+            sitekey={siteKey}
+            onVerify={(token) => setTurnstileToken(token)}
+            onExpire={() => setTurnstileToken("")}
+            className="flex justify-center"
+          />
+        )}
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || (siteKey && !turnstileToken)}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
