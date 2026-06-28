@@ -1,0 +1,30 @@
+---
+description: Use the base44 shim, never Supabase client directly from pages or components
+globs: ["src/pages/**/*.{js,jsx,ts,tsx}", "src/components/**/*.{js,jsx,ts,tsx}"]
+alwaysApply: false
+---
+
+# Shim pattern (non-negotiable)
+
+Pages and components must go through the drop-in shim. **Never** import `supabase` from `@/lib/supabase` in files under `src/pages/**` or `src/components/**`.
+
+## Correct
+```js
+import { base44 } from "@/api/base44Client";
+
+const posts = await base44.entities.Post.filter({ status: "published" }, "-created_date", 20);
+const me = await base44.auth.me();
+const { data } = await base44.functions.invoke("recordPostView", { post_id });
+```
+
+## Wrong
+```js
+import { supabase } from "@/lib/supabase";       // ❌ from a page/component
+await supabase.from("posts").select("*");        // ❌ bypasses the shim
+```
+
+## Why
+Lets us swap or repair the backend without editing 50+ pages. If you need an entity method that doesn't exist on the shim, ADD IT to `src/lib/db.js` (or `auth.js` / `functions.js`), then call through `base44.*`.
+
+## Exception
+Only `src/lib/**` may import `@/lib/supabase` directly. Components in `src/components/admin/` that need a real-time subscription or a raw query may use it **only if** there is no reasonable shim alternative and the file ends with a `// SHIM-EXEMPT: <reason>` comment line.

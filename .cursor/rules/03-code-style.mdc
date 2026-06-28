@@ -1,0 +1,42 @@
+---
+description: Frontend code style — language, components, conventions
+globs: ["src/**/*.{js,jsx,ts,tsx}", "index.html"]
+alwaysApply: false
+---
+
+# Code style
+
+## Language
+- **UI strings:** Simplified Chinese (e.g., `编辑资料`, `加载中`, `请先登录`)
+- **Code identifiers, comments:** English
+
+## Editor & libs
+- Rich text: **Tiptap** (NOT Quill — Quill's image handler was broken; do not reintroduce it)
+- Toasts: `import { toast } from "@/components/ui/use-toast"` (NOT `@/hooks/use-toast`)
+- Components: Radix UI primitives + Tailwind (no other UI lib)
+- Data fetching: TanStack Query (React Query). Wrap server calls in `useQuery` / `useMutation`.
+- Forms: react-hook-form when validation is non-trivial; plain state OK for 1–2 fields
+
+## Tailwind / design tokens
+- Background: `bg-background` (`#FAFAFA`)
+- Text: `text-foreground` (`#1a1a1a`)
+- Accent: `text-primary` / `bg-primary` (teal `#0D9488`)
+- Card padding: `p-4 md:p-6`
+- Tap targets ≥ 44×44px (`h-11` or larger on buttons)
+- Fonts: Noto Sans SC → PingFang SC → Microsoft YaHei → sans-serif
+
+## Imports
+- Use `@/` alias for everything under `src/` (e.g., `@/lib/db`, `@/components/forum/PostCard`)
+- Avoid deep relative imports `../../../`
+
+## Patterns to follow
+- Pages live in `src/pages/`, components in `src/components/{forum,admin,common,ui}/`
+- Auth gate: `import { useAuth } from "@/lib/AuthContext"` then check `user`, `isAuthenticated`, `isLoadingAuth`
+- Loading states use `<Loader2 className="animate-spin" />` from lucide-react
+- Empty states use `<EmptyState icon={...} title="..." />` from `src/components/common/EmptyState.jsx`
+
+## Don't
+- Hardcode any URL — use `import.meta.env.VITE_SITE_URL`
+- `console.log` in shipped code (remove before commit)
+- Inline `style={...}` when a Tailwind class exists
+- Add new dependencies without checking with the human (npm install bloats bundle)

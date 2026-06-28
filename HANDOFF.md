@@ -8,15 +8,15 @@
 
 ## 🟢 IMMEDIATE NEXT ACTIONS (start here)
 
-These are the open items right now, in order:
+Last session ended with the rebrand + dynamic-locations commits pushed to `main` (commit `530133b..cc05db9`, 2026-06-28). Netlify is/was rebuilding. Pick up here:
 
-1. **Decide on the 地区管理 ghost feature** (Path A or Path B — see §11.1)
-2. **Finish Turnstile CAPTCHA wiring** (user has keys, needs to paste site key in chat + add secret in Supabase; then AI wires the frontend widget — see §11.2)
-3. **Verify email confirmation is toggled ON in Supabase Auth → Providers → Email** (user was supposed to do this — confirm before declaring B6 done)
-4. **Push rebrand + logo to staging then main** (rebrand from 邻里荟 → Hamsaplou is locally done; needs git push and Netlify deploy — see §11.3)
-5. **Untested-on-live flows** to smoke test (comments, depth trigger, reports, first-post moderation — see §11.4)
+1. **Verify deploy succeeded:** hard-refresh https://hamsaplou.com — confirm Hamsaplou logo + brand + Seremban tab visible. If not visible after 5 min, check Netlify deploy status via `mcp__9065e8ae-...__netlify-project-services-reader` get-project.
+2. **Finish Turnstile CAPTCHA wiring** — user has Cloudflare keys ready. Needs to: paste site key in chat → AI sets `VITE_TURNSTILE_SITE_KEY` Netlify env var → user adds secret in Supabase Attack Protection. Then AI wires React widget into Register/Login/ForgotPassword pages. See §11.2.
+3. **Verify email confirmation toggled ON in Supabase** (Auth → Providers → Email → Confirm email ON). User said yes but never confirmed.
+4. **Smoke test on live** (comments, depth trigger, reports, first-post mod) — see §11.5.
+5. **地区管理 admin UI** — already functional (Path A), user can add locations whenever. See §11.1.
 
-After those, see §11 backlog for the rest.
+After those, see §11.6 backlog for nice-to-haves.
 
 ---
 
@@ -314,19 +314,21 @@ Tiptap editor, loading/empty/error states, mobile responsiveness, visual + typog
 
 ## 11. ⏸️ PENDING — pick up here
 
-### 11.1 地区管理 ghost admin feature — DECISION NEEDED
+### 11.1 地区管理 dynamic locations — DONE (Path A)
 
-**Symptom:** Admin dashboard has 地区管理 (location management) UI letting admin add locations (e.g. Seremban with slug `/seremban`, alias `/sbn`). Adding rows there does nothing — they don't show in the public-site location tabs (still only KL / Cheras / Ampang / NS).
+Audit on 2026-06-28 revealed Path A was already implemented in a prior commit:
+- `locations` table exists (cols: id, name, slug, alias, display_name, chinese_name, sort_order, active). RLS: public read, admin write.
+- `posts.location` is already `text` (not enum). Existing posts use the location `name` value ("KL", "Cheras", etc.).
+- Frontend hooks: `src/lib/locations.js` exports `useLocations()` (React Query, 5-min staleTime, hardcoded `LOCATIONS` array as initialData/fallback). Helpers: `getLocationBySlug`, `getLocationByName`, `resolveLocationSlug`, `getPostUrl`.
+- `LocationTabs.jsx` consumes `useLocations()`. Renders all active locations as tabs after 全部.
+- `LocationPage.jsx`, `PostDetail.jsx`, `PostEditor.jsx`, `WritePost.jsx` all pass `liveLocations` into the helpers so alias resolution works.
+- `App.jsx` has wildcard `<Route path="/:locationSlug" element={<LocationPage />} />` so any new slug is auto-routed.
+- `LocationsManager.jsx` admin page at `/admin/locations` does CRUD against the table.
+- Sitemap Edge Function (v3, deployed 2026-06-28) reads locations dynamically.
 
-**Cause:** `location` is hardcoded as a Postgres enum `('KL', 'Cheras', 'Ampang', 'Negeri Sembilan')`. Admin UI writes to a different table (or to nothing). Frontend tabs read from `src/lib/locations.js` constants.
+**Note:** the hardcoded `LOCATIONS` fallback in `src/lib/locations.js` only has 4 entries (no Seremban). It's used as `initialData` for React Query so DB lookup runs in background. If DB lookup fails, Seremban won't appear. Low-risk; consider updating fallback list later or removing it.
 
-**Two ways forward:**
-
-**Path A — Dynamic locations (recommended).** Convert `location` enum → text column, create `locations` lookup table (id, name, slug, display_name, alias_slug, sort_order, enabled), backfill existing posts, update RLS where it referenced the enum, update Navbar location-tabs to read from DB, make admin UI actually CRUD against the table.
-
-**Path B — Remove the broken UI.** Hide 地区管理 nav item in `AdminLayout`. Locations stay hardcoded. New locations require a developer.
-
-Last user said they want Seremban added → Path A is the right call. Ask user to confirm before doing it.
+**To add a new location:** Admin → 地区管理 → fill form (name, slug, alias, display name, chinese name, sort order) → Save. New tab appears in navbar within 5 min (React Query staleTime) or on hard refresh.
 
 ### 11.2 Turnstile CAPTCHA — partial
 
@@ -337,27 +339,18 @@ User got Cloudflare Turnstile keys (site name `HSL Forum`, domains `hamsaplou.co
 - ⏳ AI needs to wire frontend: add `<Turnstile siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY} onSuccess={setToken} />` widget to Register / Login / ForgotPassword pages. Use a lightweight library like `react-turnstile` or `@marsidev/react-turnstile`. Pass captured token to Supabase auth calls via `options.captchaToken`.
 - Push to staging, test, promote to main
 
-### 11.3 Rebrand 邻里荟 → Hamsaplou + logo (LOCAL ONLY, needs push)
+### 11.3 Rebrand 邻里荟 → Hamsaplou + logo — PUSHED (2026-06-28)
 
-Done locally in working tree (not yet pushed/deployed):
-- `D:\hsl\public\logo.png` exists (495 KB, colorful comic-style HSL logo on orange burst)
-- `index.html`: title, og:title, og:description, favicon, apple-touch-icon, og:image all updated
-- `src/components/forum/Navbar.jsx`: replaced 论 placeholder div with `<img src="/logo.png">` + brand text "Hamsaplou"
-- `src/components/forum/Footer.jsx`: same logo + brand text + tagline updated + © 2026 Hamsaplou
-- `src/pages/Register.jsx`: success toast + subtitle changed to mention Hamsaplou
+Pushed to main as commit `530133b..cc05db9`. Netlify rebuilding. After deploy:
+- Hamsaplou brand + logo in Navbar / Footer / favicon / OG meta
+- Seremban tab in navbar (6 location tabs total: 全部 | KL | Cheras | Ampang | NS | Seremban)
+- `/seremban` route works, `/sbn` resolves via alias
+- `/admin/locations` is the dashboard CRUD for locations
+- Sitemap function v3 now reads locations dynamically
 
-**Next:**
-```bash
-cd D:\hsl
-git checkout staging
-git add -A
-git commit -m "Rebrand to Hamsaplou + add HSL logo"
-git push
-# test https://staging--hsl1.netlify.app/
-git checkout main && git merge staging && git push
-```
+**Verify after deploy:** hard-refresh hamsaplou.com (Ctrl+Shift+R). Should see logo, Hamsaplou brand, Seremban tab.
 
-Also note: logo is 495 KB which is largeish for a logo. Optional: compress to <100KB later, or generate a small `logo-32.png` for favicon use specifically.
+Optional later: compress `public/logo.png` (currently 495 KB) to <100 KB for faster first-load.
 
 ### 11.4 Username change UX — verify discoverability
 

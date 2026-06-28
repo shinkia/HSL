@@ -38,10 +38,45 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    // Initial check
-    supabase.auth.getSession().then(({ data }) => {
-      if (data?.session) loadProfile();
-      else { setIsLoadingAuth(false); setAuthChecked(true); }
+    // Initial check — in dev mode, auto-login if credentials are set in .env.local
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data?.session) {
+        loadProfile();
+      } else if (import.meta.env.DEV) {
+        // Dev auto-login via edge function (bypasses captcha)
+        try {
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+          const res = await fetch(`${supabaseUrl}/functions/v1/dev-signin`, {
+            headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+          });
+          const { token, email, error: fnError } = await res.json();
+          if (token) {
+            const { error: otpError } = await supabase.auth.verifyOtp({
+              email,
+              token,
+              type: 'magiclink',
+            });
+            if (otpError) {
+              console.warn('[dev-login] OTP verify failed:', otpError.message);
+              setIsLoadingAuth(false);
+              setAuthChecked(true);
+            }
+            // on success, auth state change listener below calls loadProfile()
+          } else {
+            console.warn('[dev-login] edge function error:', fnError);
+            setIsLoadingAuth(false);
+            setAuthChecked(true);
+          }
+        } catch (e) {
+          console.warn('[dev-login] failed:', e.message);
+          setIsLoadingAuth(false);
+          setAuthChecked(true);
+        }
+      } else {
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+      }
     });
 
     // Listen for sign-in/out

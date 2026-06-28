@@ -1,0 +1,54 @@
+---
+description: Git + deploy protocol — staging first, never force-push
+alwaysApply: true
+---
+
+# Git & deploy rules
+
+## Branches
+- `main` = production (auto-deploys to https://hamsaplou.com)
+- `staging` = staging (auto-deploys to https://staging--hsl1.netlify.app)
+- Feature branches: `feat/<short-name>` or `fix/<short-name>` (merge into `staging`)
+
+## Flow
+```
+# work on staging (or feature → staging)
+git checkout staging
+git pull --rebase
+# … edit …
+git add -A
+git commit -m "<type>: <imperative summary>"
+# preflight: run scripts/preflight.ps1
+git push origin staging
+# wait for Netlify staging deploy to go green; test on staging URL
+# only then promote:
+git checkout main
+git pull --rebase
+git merge --no-ff staging
+git push origin main
+```
+
+## Never
+- `git push --force` / `--force-with-lease` (without explicit human "go")
+- Push direct to `main` from a feature branch (always via `staging`)
+- Commit `.env`, service role keys, JWTs, or password-protected files
+- Skip `git pull --rebase` before push (causes divergence)
+
+## Always
+- Run `scripts/preflight.ps1` before `git push`
+- Stop Vite dev server before git ops (file locks)
+- If you hit stale `.git/index.lock` or `.git/config.lock`: confirm no process holds it, then delete
+- Watch for the nested `D:\hsl\HSL` folder — it's gitignored; if git ever shows it tracked, run `git rm --cached HSL`
+
+## Commit message format
+```
+<type>: <imperative summary under 60 chars>
+
+[optional body explaining why]
+```
+Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `db`, `style`, `test`.
+
+## Netlify
+- `VITE_*` env vars are inlined at build time → changing one requires a new deploy
+- Verify deploy state = `ready` via `mcp__netlify__get-project` before declaring "shipped"
+- Never delete env vars without confirming with the human

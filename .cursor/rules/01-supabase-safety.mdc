@@ -1,0 +1,44 @@
+---
+description: Supabase safety — DDL, RLS, advisors, branches
+alwaysApply: true
+---
+
+# Supabase safety rules
+
+## DDL (schema changes)
+- ✅ Use `mcp__supabase__apply_migration` (named, versioned, replayable)
+- ❌ Never `mcp__supabase__execute_sql` for DDL — it bypasses migration history
+- ✅ After every DDL: run `mcp__supabase__get_advisors` (security + performance) and resolve WARN/ERROR
+- ✅ Also drop the same SQL into `supabase/migrations/<timestamp>_<name>.sql` (going forward we version migrations in git)
+
+## Destructive ops (require explicit human "go")
+- DROP TABLE
+- DROP COLUMN
+- ALTER TYPE (enum changes that affect existing data)
+- Disabling RLS
+- DELETE without WHERE
+- TRUNCATE
+- Removing a SECURITY DEFINER function
+
+## RLS
+- Every new table: `alter table X enable row level security;`
+- Helper functions on `profiles` (is_admin, is_staff, is_banned, current_user_role): `SECURITY INVOKER`
+- Functions that maintain counters / triggers: `SECURITY INVOKER` + `SET search_path = public`
+- Functions exposed to anon/auth via RPC: `SECURITY DEFINER` only when truly needed; document why
+
+## Risky DB workflow (use Supabase branches)
+Staging DB == production DB. For migrations that could break data:
+1. `mcp__supabase__create_branch` (cost ~$0.013/hr, confirm cost first)
+2. Apply migration to branch
+3. Test
+4. If good: apply same migration to prod via `apply_migration`. If bad: drop branch.
+
+## Secrets
+- ❌ `SUPABASE_SERVICE_ROLE_KEY` MUST NOT appear in any `src/**` file
+- ✅ Only in Edge Function env (`Deno.env.get(...)`)
+- ❌ Never `console.log` a JWT or session access_token
+
+## Edge Functions
+- Default to dry-run for destructive ops (see `storage-cleanup` example)
+- `verify_jwt: true` unless explicitly public (sitemap, etc.)
+- Internal admin checks: query `profiles` for `role` after `auth.getUser()`

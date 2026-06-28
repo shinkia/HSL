@@ -10,11 +10,11 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
 import HoneypotField from "@/components/HoneypotField";
+import Turnstile from "react-turnstile";
 
-// reCAPTCHA v3 scaffold — loads script if VITE_RECAPTCHA_SITE_KEY is set
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 export default function Register() {
   const navigate = useNavigate();
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,26 +23,7 @@ export default function Register() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [honeypot, setHoneypot] = useState("");
-
-  useEffect(() => {
-    if (RECAPTCHA_SITE_KEY) {
-      const script = document.createElement("script");
-      script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
-      script.async = true;
-      document.head.appendChild(script);
-    }
-  }, []);
-
-  const getRecaptchaToken = async () => {
-    if (RECAPTCHA_SITE_KEY && window.grecaptcha) {
-      try {
-        return await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: "register" });
-      } catch (e) {
-        return null;
-      }
-    }
-    return null;
-  };
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,12 +59,11 @@ export default function Register() {
 
     setLoading(true);
     try {
-      // Pre-registration check (rate limit, suspicious username, reCAPTCHA)
-      const recaptchaToken = await getRecaptchaToken();
+      // Pre-registration check (rate limit, suspicious username)
       const checkRes = await base44.functions.invoke("checkRegistration", {
         username,
         honeypot,
-        recaptcha_token: recaptchaToken,
+        turnstile_token: turnstileToken || null,
       });
       if (checkRes.data.honeypot_caught) {
         toast({ title: "注册成功，欢迎加入 Hamsaplou" });
@@ -239,7 +219,15 @@ export default function Register() {
           </Label>
         </div>
         <HoneypotField value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+        {siteKey && (
+          <Turnstile
+            sitekey={siteKey}
+            onVerify={(token) => setTurnstileToken(token)}
+            onExpire={() => setTurnstileToken("")}
+            className="flex justify-center"
+          />
+        )}
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || (siteKey && !turnstileToken)}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

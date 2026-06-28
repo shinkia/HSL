@@ -1,0 +1,50 @@
+---
+description: Postgres function + RLS patterns for Supabase migrations
+globs: ["supabase/migrations/**/*.sql"]
+alwaysApply: false
+---
+
+# Postgres function & RLS conventions
+
+## Every function MUST
+- `set search_path = public` (or appropriate explicit schema)
+- Be either `security invoker` (default, runs as caller) or explicitly `security definer` with a documented reason
+- Have its EXECUTE grants reviewed: `revoke execute ... from public, anon, authenticated;` then `grant execute ... to <role>;`
+
+## Helper functions on `profiles` (is_admin, is_staff, is_banned, current_user_role)
+- `language sql stable security invoker set search_path = public`
+- Profiles has public read RLS so these don't need DEFINER
+
+## Trigger functions (counters, guards, propagation)
+- `language plpgsql security invoker set search_path = public`
+- Always handle null cases and use `greatest(0, x - 1)` for decrements
+
+## RLS policy template for a new table
+```sql
+alter table <table> enable row level security;
+
+create policy <table>_read on <table>
+  for select using ( <readable_condition> );
+
+create policy <table>_insert_owner on <table>
+  for insert with check ( auth.uid() = user_id and not is_banned() );
+
+create policy <table>_update_owner on <table>
+  for update using ( auth.uid() = user_id );
+
+create policy <table>_update_staff on <table>
+  for update using ( is_staff() );
+
+create policy <table>_delete_owner_or_staff on <table>
+  for delete using ( auth.uid() = user_id or is_staff() );
+```
+
+## After every migration
+- Run `mcp__supabase__get_advisors --type security` AND `--type performance`
+- Fix every WARN and ERROR before moving on
+
+## Forbidden in migrations
+- `drop table` without explicit human "go"
+- `alter table ... disable row level security`
+- `create policy ... using (true)` on a write-permitted operation
+- Hardcoding service role bypass
