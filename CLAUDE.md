@@ -1,8 +1,11 @@
-# HSL Forum — Claude Context
+# Hamsaplou (HSL) Forum — Claude Context
 
 > This file is auto-loaded by Claude when working in this repo. It captures project state, conventions, and open issues so any new Claude session can pick up without re-deriving context.
+>
+> **For full handoff context (including all pending items, gotchas, file layout, bug history), read `HANDOFF.md`.**
 
-**Last updated:** 2026-06-21
+**Last updated:** 2026-06-28
+**Live URL:** https://hamsaplou.com (rebrand from 邻里荟 → Hamsaplou pushed in commit `cc05db9`)
 **Project:** 邻里荟 (Linlihui) — Chinese-language community forum/classifieds for KL / Cheras / Ampang / Negeri Sembilan
 **Live URL:** https://hsl1.netlify.app
 **Repo:** https://github.com/shinkia/HSL
