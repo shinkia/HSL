@@ -1,8 +1,24 @@
-# HSL Forum — AI Handoff Document
+# Hamsaplou (HSL) Forum — AI Handoff Document
 
-**Purpose:** Complete project context so a new AI session (or new collaborator) can pick up exactly where the previous session left off. Read this entire document before doing any work.
+**Purpose:** Complete project context so a new AI session (or new collaborator like Codex) can pick up exactly where the previous session left off. Read this entire document before doing any work.
 
-**Last updated:** 2026-06-22
+**Last updated:** 2026-06-27
+
+---
+
+## 🟢 IMMEDIATE NEXT ACTIONS (start here)
+
+These are the open items right now, in order:
+
+1. **Decide on the 地区管理 ghost feature** (Path A or Path B — see §11.1)
+2. **Finish Turnstile CAPTCHA wiring** (user has keys, needs to paste site key in chat + add secret in Supabase; then AI wires the frontend widget — see §11.2)
+3. **Verify email confirmation is toggled ON in Supabase Auth → Providers → Email** (user was supposed to do this — confirm before declaring B6 done)
+4. **Push rebrand + logo to staging then main** (rebrand from 邻里荟 → Hamsaplou is locally done; needs git push and Netlify deploy — see §11.3)
+5. **Untested-on-live flows** to smoke test (comments, depth trigger, reports, first-post moderation — see §11.4)
+
+After those, see §11 backlog for the rest.
+
+---
 
 ---
 
@@ -265,9 +281,10 @@ Tiptap editor, loading/empty/error states, mobile responsiveness, visual + typog
 - D14: Pagination (LoadMoreButton, 20/page) on Home/Location/Category/Tag
 
 ### Polish
-- Page title `<title>` → "邻里荟 (Linlihui)" + OG/Twitter meta
+- Page title `<title>` → "Hamsaplou" (was 邻里荟) + OG/Twitter meta + favicon = /logo.png
 - Profile edit UI (avatar upload, bio, username) at `/user/{me}`
 - ProfileEditDialog component
+- **Rebrand to "Hamsaplou" + HSL logo** at `public/logo.png` (Navbar + Footer + favicon); LOCAL ONLY — not pushed yet (see §11.3)
 
 ### Domain + email
 - hamsaplou.com from Namecheap, Netlify DNS, HTTPS via Netlify Let's Encrypt
@@ -297,38 +314,84 @@ Tiptap editor, loading/empty/error states, mobile responsiveness, visual + typog
 
 ## 11. ⏸️ PENDING — pick up here
 
-### IMMEDIATE: finish Turnstile + email verification (interrupted)
+### 11.1 地区管理 ghost admin feature — DECISION NEEDED
 
-**Status:**
-- C (email verification): user asked to toggle ON in Supabase dashboard (Auth → Providers → Email → Confirm email ON). **Need to verify they did this.**
-- D (Turnstile CAPTCHA): partially done.
-  - User got Cloudflare Turnstile site key + secret key
-  - **NEEDS:** user to paste Site Key in chat so it can be set as `VITE_TURNSTILE_SITE_KEY` in Netlify
-  - **NEEDS:** user to toggle "Enable Captcha protection" ON in Supabase → Attack Protection, paste Secret Key there
-  - **NEEDS:** frontend wiring — add Turnstile widget to Register / Login / ForgotPassword pages, pass token via `options.captchaToken` to Supabase auth calls
-  - After all that, push to staging, test, promote to main
+**Symptom:** Admin dashboard has 地区管理 (location management) UI letting admin add locations (e.g. Seremban with slug `/seremban`, alias `/sbn`). Adding rows there does nothing — they don't show in the public-site location tabs (still only KL / Cheras / Ampang / NS).
 
-### Then: critical gaps still open (from §12 audit)
+**Cause:** `location` is hardcoded as a Postgres enum `('KL', 'Cheras', 'Ampang', 'Negeri Sembilan')`. Admin UI writes to a different table (or to nothing). Frontend tabs read from `src/lib/locations.js` constants.
 
-1. **Untested on live:** Comment posting, comment depth trigger, report submission flow, moderation queue, first-post moderation, storage cleanup on actual orphan
-2. **No 2FA for admin**
-3. **No analytics** (Plausible / Umami recommended)
-4. **No error tracking** (Sentry recommended)
-5. **Many schema migrations bypassed staging today** — going forward, all DB changes must hit a Supabase branch first
-6. **Content upload not started** — user said this is the real blocker
+**Two ways forward:**
 
-### Nice-to-have backlog
-- OG image per post (link previews)
-- PWA manifest
-- Notifications (bell icon)
-- Bookmarks
-- @mentions
+**Path A — Dynamic locations (recommended).** Convert `location` enum → text column, create `locations` lookup table (id, name, slug, display_name, alias_slug, sort_order, enabled), backfill existing posts, update RLS where it referenced the enum, update Navbar location-tabs to read from DB, make admin UI actually CRUD against the table.
+
+**Path B — Remove the broken UI.** Hide 地区管理 nav item in `AdminLayout`. Locations stay hardcoded. New locations require a developer.
+
+Last user said they want Seremban added → Path A is the right call. Ask user to confirm before doing it.
+
+### 11.2 Turnstile CAPTCHA — partial
+
+User got Cloudflare Turnstile keys (site name `HSL Forum`, domains `hamsaplou.com`, `staging--hsl1.netlify.app`, `localhost`). Status:
+
+- ⏳ User needs to paste Site Key in chat — then AI sets `VITE_TURNSTILE_SITE_KEY` in Netlify via MCP
+- ⏳ User needs to toggle "Enable Captcha protection" ON at https://supabase.com/dashboard/project/zazmzusudsldkvahsxgo/auth/protection, provider = Turnstile, paste Secret Key, Save
+- ⏳ AI needs to wire frontend: add `<Turnstile siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY} onSuccess={setToken} />` widget to Register / Login / ForgotPassword pages. Use a lightweight library like `react-turnstile` or `@marsidev/react-turnstile`. Pass captured token to Supabase auth calls via `options.captchaToken`.
+- Push to staging, test, promote to main
+
+### 11.3 Rebrand 邻里荟 → Hamsaplou + logo (LOCAL ONLY, needs push)
+
+Done locally in working tree (not yet pushed/deployed):
+- `D:\hsl\public\logo.png` exists (495 KB, colorful comic-style HSL logo on orange burst)
+- `index.html`: title, og:title, og:description, favicon, apple-touch-icon, og:image all updated
+- `src/components/forum/Navbar.jsx`: replaced 论 placeholder div with `<img src="/logo.png">` + brand text "Hamsaplou"
+- `src/components/forum/Footer.jsx`: same logo + brand text + tagline updated + © 2026 Hamsaplou
+- `src/pages/Register.jsx`: success toast + subtitle changed to mention Hamsaplou
+
+**Next:**
+```bash
+cd D:\hsl
+git checkout staging
+git add -A
+git commit -m "Rebrand to Hamsaplou + add HSL logo"
+git push
+# test https://staging--hsl1.netlify.app/
+git checkout main && git merge staging && git push
+```
+
+Also note: logo is 495 KB which is largeish for a logo. Optional: compress to <100KB later, or generate a small `logo-32.png` for favicon use specifically.
+
+### 11.4 Username change UX — verify discoverability
+
+User noticed their auto-generated username `jackietoh_sec` (from email `jackietoh.sec@gmail.com` with `.` sanitized to `_`) is ugly. The Profile edit dialog DOES allow rename. Path: avatar dropdown → 个人中心 → 编辑资料 button → change username → save.
+
+**To verify:** does the avatar dropdown actually have a 个人中心 (My Profile) link? If not, add one to `Navbar.jsx`. Search for `DropdownMenu` in Navbar — it might have logout but not profile link.
+
+### 11.5 Still-untested flows on live
+
+Have NEVER been exercised end-to-end against production:
+- Comment posting + comment depth trigger (D18)
+- Report submission flow (U3) + moderation queue actioning
+- First-post moderation (C12) — register a fresh user, post, confirm it's `archived` until admin publishes
+- Storage cleanup on a real orphaned file (need to upload then delete a post first)
+- Pagination on a feed with >20 posts (currently only ~3 posts exist)
+
+### 11.6 Backlog (nice-to-have)
+
+- 2FA for admin accounts
+- Analytics (Plausible — privacy-friendly, free tier)
+- Error tracking (Sentry — free tier)
+- OG image per post (better WhatsApp/Telegram link previews)
+- PWA manifest (installable on phone)
+- Notifications (bell icon for replies / mentions)
+- Bookmarks / save posts
+- @mentions in comments
 - Q&A best-answer marking
-- Draft autosave
+- Draft autosave in editor
 - RSS feed
-- Edit history
-- CI/CD (lint + typecheck on PR)
-- Image CDN / WebP / lazy load
+- Edit history on posts/comments
+- CI/CD (lint + typecheck on PR via GitHub Actions)
+- Image CDN / WebP conversion / lazy load
+- Compress logo.png to <100 KB
+- Migrate remaining stub functions in `src/lib/functions.js` to real Edge Functions or RPCs (sendVerificationEmail, resendVerification, verifyEmail — but these may be obsolete now that Supabase Auth handles email verification natively)
 
 ---
 
@@ -407,15 +470,15 @@ D:\hsl
 
 ## 15. How to continue (next AI / collaborator)
 
-**Read this entire file first.** Then:
+**Read this entire file first.** Then check the "🟢 IMMEDIATE NEXT ACTIONS" block at the top of this file.
 
-1. **Check `git status` on D:\hsl** — confirm clean working tree, on `staging` branch
+Practical sequence:
+
+1. **Check `git status` on D:\hsl** — there are uncommitted rebrand changes (logo + Hamsaplou). Decide whether to push them first or address Path A (dynamic locations) first.
 2. **Verify the live site loads** (https://hamsaplou.com) and admin login works
-3. **Check current open task** from §11 (likely Turnstile CAPTCHA frontend wiring)
-4. **Ask user to confirm:**
-   - Did they toggle "Confirm email" ON in Supabase? (C task)
-   - Do they have the Turnstile Site Key ready to paste?
-5. **Resume from the pending item** — finish Turnstile wiring, push to staging, test, promote.
+3. **Pick up §11.1 first** — ask user "Path A or Path B?" for 地区管理 (decision needed before code)
+4. **If user picks Path A:** plan the migration, ask user to confirm before applying (it modifies the location enum which affects existing posts)
+5. **In parallel:** ask user for Turnstile Site Key and confirm email-verification toggle status
 
 **For any new feature/fix:**
 - Discuss approach with user before coding
