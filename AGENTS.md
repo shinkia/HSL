@@ -22,13 +22,59 @@ React + Vite + Tailwind + Radix UI + Tiptap + React Router + TanStack Query · S
 
 ## 2. Architecture — drop-in shim pattern (NON-NEGOTIABLE)
 
-The codebase calls `base44.entities.X`, `base44.auth.X`, `base44.functions.invoke()`. Under the hood these are routed through `src/lib/` shims to Supabase. **Pages and components MUST go through the shim. Never call the Supabase client directly from `src/pages/**` or `src/components/**`.**
+### What the pattern is
+
+All data access flows through a shim layer. Pages and components never touch Supabase directly:
 
 ```
-src/api/base44Client.js → src/lib/{db,auth,functions,storage,supabase}.js → Supabase
+src/pages/**          ← UI only; calls base44.* API
+src/components/**     ← UI only; calls base44.* API
+        │
+        ▼
+src/api/base44Client.js   ← re-exports base44.* from src/lib/
+        │
+        ▼
+src/lib/db.js         ← Post, Comment, User, Category, Tag, … (entity shim)
+src/lib/auth.js       ← login, register, OAuth, password reset
+src/lib/storage.js    ← uploadPostImage, uploadAvatar
+src/lib/functions.js  ← invoke('checkRateLimit' | 'recordPostView' | …)
+src/lib/supabase.js   ← raw Supabase client (only used inside src/lib/)
+        │
+        ▼
+      Supabase
 ```
 
-Reason: lets us swap the backend without editing 50+ files. Maintain it.
+### Why this rule exists
+
+The project was migrated from a third-party BaaS (Base44) to Supabase. Rather than rewriting 50+ page files, shims were built at `src/lib/` that expose the same `base44.*` API surface pages already called. If the backend ever changes again, only `src/lib/` needs updating — not every page. Breaking the pattern destroys that guarantee.
+
+### The rule (memorize this)
+
+- ✅ **Allowed anywhere:** `base44.entities.Post.list(...)`, `base44.auth.me()`, `base44.functions.invoke(...)`
+- ✅ **Allowed only in `src/lib/`:** `import { supabase } from './supabase'` and direct Supabase client calls
+- ❌ **Forbidden in `src/pages/**` and `src/components/**`:** any direct Supabase import or call
+
+### Wrong vs correct
+
+```js
+// ❌ WRONG — direct Supabase call inside a page
+import { supabase } from '@/lib/supabase'
+const { data } = await supabase.from('posts').select('*')
+
+// ✅ CORRECT — go through the shim
+import { base44 } from '@/api/base44Client'
+const posts = await base44.entities.Post.list({ filter: { status: 'published' } })
+```
+
+```js
+// ❌ WRONG — importing the raw client in a component
+import { createClient } from '@supabase/supabase-js'
+
+// ✅ CORRECT — if you need something the shim doesn't expose yet, ADD IT TO src/lib/db.js
+// then call it via base44.entities.YourEntity.yourMethod()
+```
+
+If a shim method doesn't exist for what you need, **add it to the appropriate `src/lib/` file** — do not bypass the layer.
 
 ---
 
