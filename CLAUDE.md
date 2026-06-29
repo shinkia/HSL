@@ -4,7 +4,7 @@
 > **For doctrine + safety rules + agent workflow: read `AGENTS.md`.**
 > **For deep technical context (schema, bug history, file map, backlog): read `HANDOFF.md`.**
 
-**Last updated:** 2026-06-28
+**Last updated:** 2026-06-29
 
 ---
 
@@ -47,6 +47,33 @@ src/lib/functions.js     → invoke('checkRateLimit'|'recordPostView'|'submitRep
 ```
 
 When editing pages: `import { base44 } from "@/api/base44Client"` then `base44.entities.Post.list(...)`, `base44.auth.me()`, etc.
+
+---
+
+## Local dev workflow (Cursor + live preview)
+
+This is the closest thing to Base44 — AI edits local files, Vite hot-reloads instantly.
+
+**One-time setup (in Cursor terminal):**
+```bash
+npm install -g @anthropic-ai/claude-code   # install Claude Code CLI
+cp .env.example .env.local                 # then fill in VITE_SUPABASE_ANON_KEY
+```
+Anon key is in `setup.ps1` lines 73–77.
+
+**Every session — open 2 terminals in Cursor:**
+```
+Terminal A:  npm run dev        → http://localhost:5173 (live browser)
+Terminal B:  claude             → AI edits files → Vite hot-reloads instantly
+```
+
+**Ship when ready:**
+```
+staging branch  →  staging--hsl1.netlify.app  (review here)
+main branch     →  hamsaplou.com              (go live)
+```
+
+> **Warning:** local dev hits the **prod Supabase** DB. For destructive tests, create a Supabase branch first (`~$0.30/day`).
 
 ---
 
